@@ -106,6 +106,10 @@ def logout():
     logout_user()
     return redirect("/")
 
+@my_super_app.route('/cabinet')
+def cabinet():
+    return render_template('cabinet.html', title='Личный кабинет')
+
 
 if __name__ == '__main__':
     my_super_app.run(port=8060, host='127.0.0.1')
