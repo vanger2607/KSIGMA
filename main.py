@@ -1,10 +1,10 @@
 from datetime import timedelta
-
+import os
 from flask import Flask, url_for, render_template, request, redirect
 from flask_jwt_simple import JWTManager
-
-from data import db_session
+from flask_ngrok import run_with_ngrok
 from waitress import serve
+from data import db_session
 from data.users import User
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, TextAreaField, SubmitField, SelectField, BooleanField
@@ -16,7 +16,7 @@ import smtplib
 my_super_app = Flask(__name__)
 my_super_app.config['SECRET_KEY'] = '12Wqfgr66ThSd88UI234901_qprjf'
 
-db_session.global_init("data/db/users.db")
+db_session.global_init("users.db")
 login_manager = LoginManager()
 login_manager.init_app(my_super_app)
 my_super_app.config['JWT_SECRET_KEY'] = 'hghfehi23jksdnlqQw3244'
@@ -27,6 +27,7 @@ my_super_app.jwt = JWTManager(my_super_app)
 smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
 smtpObj.starttls()
 smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
+run_with_ngrok(my_super_app)
 
 
 @login_manager.user_loader
@@ -107,10 +108,12 @@ def logout():
     logout_user()
     return redirect("/")
 
+
 @my_super_app.route('/cabinet')
 def cabinet():
     return render_template('cabinet.html', title='Личный кабинет')
 
 
 if __name__ == '__main__':
-    serve(my_super_app, host='0.0.0.0', port=50000)
+    port = int(os.environ.get("PORT", 5000))
+    my_super_app.run(host='0.0.0.0', port=port)
