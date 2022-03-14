@@ -26,7 +26,6 @@ my_super_app.jwt = JWTManager(my_super_app)
 smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
 smtpObj.starttls()
 smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
-run_with_ngrok(my_super_app)
 
 
 @login_manager.user_loader
@@ -39,7 +38,7 @@ class RegisterForm(FlaskForm):
     email = EmailField('Почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     password_again = PasswordField('Повторите пароль', validators=[DataRequired()])
-    name = StringField('Имя пользователя', validators=[DataRequired()])
+    name = StrirField('Имя пользователя', validators=[DataRequired()])
     grade = SelectField('Класс', choices=[5, 6, 7, 8, 9, 10, 11])
     about = TextAreaField("Немного о себе")
     submit = SubmitField('Войти/Зарегестрироваться')
