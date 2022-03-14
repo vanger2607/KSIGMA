@@ -2,7 +2,6 @@ from datetime import timedelta
 import os
 from flask import Flask, url_for, render_template, request, redirect
 from flask_jwt_simple import JWTManager
-from flask_ngrok import run_with_ngrok
 from waitress import serve
 from data import db_session
 from data.users import User
@@ -115,4 +114,5 @@ def cabinet():
 
 
 if __name__ == '__main__':
-    my_super_app.run()
+    port = int(os.environ.get("PORT", 5000))
+    my_super_app.run(host='0.0.0.0', port=port)
