@@ -116,4 +116,4 @@ def cabinet():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    my_super_app.run(host='0.0.0.0', port=port)
+    my_super_app.run(port=port)
