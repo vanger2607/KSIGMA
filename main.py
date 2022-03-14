@@ -4,6 +4,7 @@ from flask import Flask, url_for, render_template, request, redirect
 from flask_jwt_simple import JWTManager
 
 from data import db_session
+from waitress import serve
 from data.users import User
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, TextAreaField, SubmitField, SelectField, BooleanField
@@ -112,4 +113,4 @@ def cabinet():
 
 
 if __name__ == '__main__':
-    my_super_app.run(port=8060, host='127.0.0.1')
+    serve(my_super_app, host='0.0.0.0', port=50000)
