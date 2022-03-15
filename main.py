@@ -79,7 +79,7 @@ def reqister():
             smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data, msg.encode("utf8"))
             smtpObj.quit()
         except Exception as e:
-            print(e)
+            print(e, 'error!!!')
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="с почтой что-то не то")
