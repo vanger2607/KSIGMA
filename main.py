@@ -76,7 +76,7 @@ def reqister():
             smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
             smtpObj.starttls()
             smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
-            print('ok)
+            print('ok')
             msg = 'Вы зарегистрировались в КСИГМЕ!!! С Вас теперь будут брать ежесуточно налог - 5 рублей'
             smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data, msg.encode("utf8"))
             smtpObj.quit()
