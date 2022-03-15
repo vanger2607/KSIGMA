@@ -23,9 +23,7 @@ my_super_app.config['JWT_EXPIRES'] = timedelta(hours=45)
 my_super_app.config['JWT_IDENTITY_CLAIM'] = 'user'
 my_super_app.config['JWT_HEADER_NAME'] = 'authorization'
 my_super_app.jwt = JWTManager(my_super_app)
-smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
-smtpObj.starttls()
-smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
+
 
 
 @login_manager.user_loader
@@ -75,6 +73,10 @@ def reqister():
             grade=form.grade.data
         )
         try:
+            smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
+            smtpObj.starttls()
+            smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
+            print('ok)
             msg = 'Вы зарегистрировались в КСИГМЕ!!! С Вас теперь будут брать ежесуточно налог - 5 рублей'
             smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data, msg.encode("utf8"))
             smtpObj.quit()
