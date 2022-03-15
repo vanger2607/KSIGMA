@@ -74,9 +74,15 @@ def reqister():
             email=form.email.data,
             grade=form.grade.data
         )
-        msg = 'Вы зарегистрировались в КСИГМЕ!!! С Вас теперь будут брать ежесуточно налог - 5 рублей'
-        smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data, msg.encode("utf8"))
-        smtpObj.quit()
+        try:
+            msg = 'Вы зарегистрировались в КСИГМЕ!!! С Вас теперь будут брать ежесуточно налог - 5 рублей'
+            smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data, msg.encode("utf8"))
+            smtpObj.quit()
+        except Exception as e:
+            print(e)
+            return render_template('register.html', title='Регистрация',
+                                   form=form,
+                                   message="с почтой что-то не то")
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
@@ -115,3 +121,5 @@ def cabinet():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     my_super_app.run(host='0.0.0.0', port=port)
+
+        
