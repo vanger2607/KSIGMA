@@ -1,9 +1,10 @@
 from datetime import timedelta
 import os
-from flask import Flask, url_for, render_template, request, redirect
+from flask import Flask, url_for, render_template, request, redirect, make_response
 from flask_jwt_simple import JWTManager
 from waitress import serve
-from data import db_session
+from flask_restful import reqparse, abort, Api, Resource
+from data import db_session, is_teacher_recource
 from data.users import User
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, TextAreaField, SubmitField, SelectField, BooleanField
@@ -18,13 +19,14 @@ my_super_app.config['SECRET_KEY'] = '12Wqfgr66ThSd88UI234901_qprjf'
 db_session.global_init("users.db")
 login_manager = LoginManager()
 login_manager.init_app(my_super_app)
+
 my_super_app.config['JWT_SECRET_KEY'] = 'hghfehi23jksdnlqQw3244'
 my_super_app.config['JWT_EXPIRES'] = timedelta(hours=45)
 my_super_app.config['JWT_IDENTITY_CLAIM'] = 'user'
 my_super_app.config['JWT_HEADER_NAME'] = 'authorization'
 my_super_app.jwt = JWTManager(my_super_app)
-
-
+api = Api(my_super_app, catch_all_404s=True)
+api.add_resource(is_teacher_recource.is_TeacherResource, '/api/_is_teacher/<int:user_id>')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -77,10 +79,11 @@ def reqister():
             smtpObj.starttls()
             smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
             msg = 'Вы зарегистрировались в КСИГМЕ!!! С Вас теперь будут брать ежесуточно налог - 5 рублей'
+            print(form.email.data)
             smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data, msg.encode("utf8"))
             smtpObj.quit()
         except Exception as e:
-            print(e, 'error!!!')
+            print(e)
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="с почтой что-то не то")
@@ -100,7 +103,9 @@ def login():
         user = db_sess.query(User).filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
-            return redirect("/")
+            resp = make_response(redirect('/'))
+            resp.set_cookie("is_teacher", str(user.is_teacher), 60 * 60 * 24 * 15)
+            return resp
         return render_template('login.html',
                                message="Неправильный логин или пароль",
                                form=form)
@@ -111,7 +116,9 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect("/")
+    res = make_response(redirect('/'))
+    res.set_cookie('is_teacher', request.cookies.get('is_teacher'), max_age=0)
+    return res
 
 
 @my_super_app.route('/cabinet')
@@ -119,8 +126,11 @@ def cabinet():
     return render_template('cabinet.html', title='Личный кабинет')
 
 
+@my_super_app.route('/teacher_cabinet')
+@login_required
+def teacher_cabinet():
+    return render_template('cabinet.html', title='Личный кабинет')
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     my_super_app.run(host='0.0.0.0', port=port)
-
-        
