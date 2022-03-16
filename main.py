@@ -24,8 +24,7 @@ my_super_app.config['JWT_EXPIRES'] = timedelta(hours=45)
 my_super_app.config['JWT_IDENTITY_CLAIM'] = 'user'
 my_super_app.config['JWT_HEADER_NAME'] = 'authorization'
 my_super_app.jwt = JWTManager(my_super_app)
-api = Api(my_super_app, catch_all_404s=True)
-api.add_resource(is_teacher_recource.is_TeacherResource, '/api/_is_teacher/<int:user_id>')
+
 
 @login_manager.user_loader
 def load_user(user_id):
