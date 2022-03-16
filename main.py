@@ -3,7 +3,6 @@ import os
 from flask import Flask, url_for, render_template, request, redirect, make_response
 from flask_jwt_simple import JWTManager
 from waitress import serve
-from flask_restful import reqparse, abort, Api, Resource
 from data import db_session, is_teacher_recource
 from data.users import User
 from flask_wtf import FlaskForm
