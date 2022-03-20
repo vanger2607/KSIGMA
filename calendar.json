@@ -1,0 +1,62 @@
+{
+  "tasks": {
+    "normal": {
+    },
+    "repetition": [
+      {
+        "repetition_value": 0,
+        "repetition_type": "w",
+        "details": "every monday (all day task)",
+        "title": "Але гараж ты там живой?",
+        "id": 0,
+        "color": "#B19CDA",
+        "start_time": "00:00",
+        "end_time": "00:00",
+        "repetition_subtype": "w",
+        "is_all_day": true
+      },
+      {
+        "repetition_value": 5,
+        "repetition_type": "m",
+        "details": "Александр Сорокин\n Математика",
+        "title": "Але гараж ты там живой?",
+        "id": 1,
+        "color": "#53A93F",
+        "start_time": "00:00",
+        "end_time": "00:00",
+        "repetition_subtype": "w",
+        "is_all_day": true
+      },
+      {
+        "repetition_value": 1,
+        "title": "Але гараж ты там живой?",
+        "repetition_type": "m",
+        "details": "Александр Сорокин\n Математика",
+        "title": "Repetitive monthly monthday",
+        "id": 2,
+        "color": "#777777",
+        "start_time": "00:00",
+        "end_time": "00:00",
+        "repetition_subtype": "m",
+        "is_all_day": true
+      },
+      {
+        "repetition_value": 3,
+        "repetition_type": "w",
+        "details": "every thursday at afternoon",
+        "title": "Repetitive weekly weekday",
+        "id": 3,
+        "color": "#785649",
+        "start_time": "19:30",
+        "end_time": "19:30",
+        "repetition_subtype": "w",
+        "is_all_day": false
+      }
+    ],
+    "hidden_repetition": {}
+  },
+  "users": [
+    "vv"
+  ],
+  "name": "Personal"
+}
