@@ -19,7 +19,7 @@
         <form autocomplete="off" method="POST"
             action="{{ base_url }}/{{ calendar_id }}/{{ year }}/{{ month }}/{{ day }}/task/{{ task.get("id") }}">
     {% else %}
-        <form  method="POST" action="http://192.168.1.106:5000/{{ calendar_id }}/new_task">
+        <form  method="POST" action="{{ base_url }}/{{ calendar_id }}/new_task">
     {% endif %}
     <div id="task-details-form" class="task-details-form">
 
