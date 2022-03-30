@@ -9,6 +9,7 @@ def calendar_name(user_id):
     for calendar in (db_sess.query(CalendarDB).filter(CalendarDB.student_id == user_id)):
         if calendar.calendar_name == None: # заглушка потом переделается на вывод у Вас еще нет расписания
             return 'calendar.json'
+        return calendar.calendar_name
 
 
 
