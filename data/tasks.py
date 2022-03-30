@@ -4,7 +4,7 @@ from sqlalchemy_serializer import SerializerMixin
 from .db_session import Database
 from sqlalchemy import orm
 
-class SuperTaskss(Database, SerializerMixin):
+class SuperTasks(Database, SerializerMixin):
     __tablename__ = 'Tasks'
 
     id = sqlalchemy.Column(sqlalchemy.Integer,

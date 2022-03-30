@@ -1,6 +1,6 @@
 DATA_FOLDER = ""
 USERS_DATA_FOLDER = "users"
-BASE_URL = "http://0.0.0.0:5000"
+BASE_URL = "http://192.168.1.106:5000/"
 MIN_YEAR = 2017
 MAX_YEAR = 2200
 PASSWORD_SALT = "something random and full of non-standard characters"

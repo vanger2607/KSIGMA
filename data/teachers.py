@@ -10,7 +10,7 @@ class Teacher(Database, UserMixin, SerializerMixin):
     __tablename__ = 'teachers'
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
-                                 sqlalchemy.ForeignKey("users.id"))
+                                 sqlalchemy.ForeignKey("users.id"), primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     surname = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     email = sqlalchemy.Column(sqlalchemy.String,

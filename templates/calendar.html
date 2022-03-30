@@ -1,8 +1,9 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends "index.html" %}
+
+{% block content %}
 <head>
     <meta charset="UTF-8">
-    <title>Calendar</title>
+    <title>cabinet</title>
     <link rel="stylesheet" href="{{ url_for("static", filename="style.css") }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for("static", filename="") }}favicon_{{ current_day }}.png" id="favicon">
     <meta name="viewport" content="width=400" charset="UTF-8" />
@@ -13,18 +14,6 @@
 
     <div class="header">
 
-        <div class="current-date">
-            {{ month_name }} {{ year }}
-        </div>
-        {% if month != current_month or year != current_year %}
-            <div class="back-to-current">
-                <a href="/{{ calendar_id }}/">back to current</a>
-            </div>
-        {% endif %}
-        {% if display_view_past_button %}
-            <input id="toggle-past-events" class="toggle-past-events" type="button" value="View Past" onclick="ToggleViewPastTasks();" />
-        {% endif %}
-    </div>
 
     <ul class="calendar-header">
         {% for weekday_header in weekdays_headers %}
@@ -72,6 +61,7 @@
                                 {{ task["title"] }}
                                 <p class="accordion-hidden">
                                     {{ task["details"]}}
+
                                 </p>
                             </li>
                         {% endfor %}
@@ -296,8 +286,6 @@
             } else {
                 clearTimeout(clicksTimeout);
                 clicksCounter = 0;
-                window.location = "/{{ calendar_id }}/{{ year }}/{{ month }}/new_task?day=" +
-                                    eventData.target.getAttribute("data-day");
             }
             return;
         }
@@ -342,3 +330,7 @@
 </script>
 </body>
 </html>
+
+</script>
+</body>
+{% endblock %}

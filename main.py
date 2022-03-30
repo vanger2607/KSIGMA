@@ -1,26 +1,27 @@
-from datetime import timedelta
 import os
-from flask import Flask, url_for, render_template, request, redirect, make_response, current_app
-from flask_jwt_simple import JWTManager
-from waitress import serve
-from flask_restful import reqparse, abort, Api, Resource
+import smtplib
+from datetime import timedelta
 
-from calendar_data import CalendarData, WEEK_START_DAY_MONDAY
-from data import db_session, is_teacher_recource
-from data.users import User
+import flask
+from flask import Flask, render_template, request, redirect, make_response, current_app, jsonify
+from flask_jwt_simple import JWTManager
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_restful import abort, Api
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField, TextAreaField, SubmitField, SelectField, BooleanField
 from wtforms.fields import EmailField
 from wtforms.validators import DataRequired
-from flask_login import LoginManager, login_user, login_required, logout_user
-import smtplib
 
+from calendar_data import CalendarData, WEEK_START_DAY_MONDAY
+from data import db_session, is_teacher_recource, task_resource
+from data.users import User
 from gregorian_calendar import GregorianCalendar
+from help_function import calendar_name
 
 my_super_app = Flask(__name__)
 my_super_app.config.from_object("config")
 my_super_app.config['SECRET_KEY'] = '12Wqfgr66ThSd88UI234901_qprjf'
-
+api = Api(my_super_app)
 db_session.global_init("users.db")
 login_manager = LoginManager()
 login_manager.init_app(my_super_app)
@@ -32,6 +33,7 @@ my_super_app.config['JWT_HEADER_NAME'] = 'authorization'
 my_super_app.jwt = JWTManager(my_super_app)
 api = Api(my_super_app, catch_all_404s=True)
 api.add_resource(is_teacher_recource.is_TeacherResource, '/api/_is_teacher/<int:user_id>')
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -128,7 +130,8 @@ def logout():
 
 @my_super_app.route('/cabinet')
 def cabinet():
-    calendar_id = 'calendar.json'
+
+    calendar_title = calendar_name(current_user.get_id())
     GregorianCalendar.setfirstweekday(current_app.config["WEEK_STARTING_DAY"])
 
     current_day, current_month, current_year = GregorianCalendar.current_date()
@@ -145,7 +148,7 @@ def cabinet():
 
     calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
     try:
-        data = calendar_data.load_calendar(calendar_id)
+        data = calendar_data.load_calendar(calendar_title)
     except FileNotFoundError:
         abort(404)
         print('good')
@@ -161,27 +164,109 @@ def cabinet():
     else:
         weekdays_headers = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
     print('ok')
-    return render_template(
-            "calendar.html",
-            calendar_id=calendar_id,
-            year=year,
-            month=month,
-            month_name=month_name,
-            current_year=current_year,
-            current_month=current_month,
-            current_day=current_day,
-            month_days=GregorianCalendar.month_days(year, month),
-            base_url=current_app.config["BASE_URL"],
-            tasks=tasks,
-            display_view_past_button=current_app.config["SHOW_VIEW_PAST_BUTTON"],
-            weekdays_headers=weekdays_headers,
-        )
+    return render_template('calendar.html',
+                           title='Личный кабинет', calendar_id=calendar_title,
+                           year=current_year,
+                           month=current_month,
+                           month_name=month_name,
+                           current_year=current_year,
+                           current_month=current_month,
+                           current_day=current_day,
+                           month_days=GregorianCalendar.month_days(current_year, current_month),
+                           base_url=current_app.config["BASE_URL"],
+                           tasks=tasks,
+                           display_view_past_button=current_app.config["SHOW_VIEW_PAST_BUTTON"],
+                           weekdays_headers=weekdays_headers, )
+
+
 
 @my_super_app.route('/teacher_cabinet')
 @login_required
 def teacher_cabinet():
-    return render_template('cabinet.html', title='Личный кабинет')
+    calendar_title = 'calendar.json'
+    current_day, current_month, current_year = GregorianCalendar.current_date()
+    month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
+    calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
+    try:
+        data = calendar_data.load_calendar(calendar_title)
+    except FileNotFoundError:
+        abort(404)
+    tasks = calendar_data.tasks_from_calendar(current_year, current_month, data)
+    tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year, current_month, data, tasks)
+    weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+    return render_template('calendar_teacher.html',
+                           title='Личный кабинет', calendar_id=calendar_title,
+                           year=current_year,
+                           month=current_month,
+                           month_name=month_name,
+                           current_year=current_year,
+                           current_month=current_month,
+                           current_day=current_day,
+                           month_days=GregorianCalendar.month_days(current_year, current_month),
+                           base_url=current_app.config["BASE_URL"],
+                           tasks=tasks,
+                           display_view_past_button=current_app.config["SHOW_VIEW_PAST_BUTTON"],
+                           weekdays_headers=weekdays_headers, )
+
+
+@my_super_app.route('/<calendar_id>/<year>/<month>/new_task', methods=['GET', 'POST'])
+def new_task_action(calendar_id: str, year: int, month: int):
+    if flask.request.method == 'GET':
+        print('ok2')
+        GregorianCalendar.setfirstweekday(current_app.config["WEEK_STARTING_DAY"])
+
+        current_day, current_month, current_year = GregorianCalendar.current_date()
+        year = max(min(int(year), current_app.config["MAX_YEAR"]), current_app.config["MIN_YEAR"])
+        month = max(min(int(month), 12), 1)
+        month_names = GregorianCalendar.MONTH_NAMES
+
+        if current_month == month and current_year == year:
+            day = current_day
+        else:
+            day = 1
+        day = int(request.args.get("day", day))
+
+        task = {
+            "date": CalendarData.date_for_frontend(year, month, day),
+            "is_all_day": True,
+            "repeats": False,
+            "details": "",
+        }
+
+        emojis_enabled = current_app.config.get("EMOJIS_ENABLED", False)
+
+        return render_template(
+                "task.html",
+                calendar_id=calendar_id,
+                year=year,
+                month=month,
+                min_year=current_app.config["MIN_YEAR"],
+                max_year=current_app.config["MAX_YEAR"],
+                month_names=month_names,
+                task=task,
+                base_url=current_app.config["BASE_URL"],
+                editing=False,
+                emojis_enabled=emojis_enabled,
+                button_default_color_value=current_app.config["BUTTON_CUSTOM_COLOR_VALUE"],
+                buttons_colors=current_app.config["BUTTONS_COLORS_LIST"],
+                buttons_emojis=current_app.config["BUTTONS_EMOJIS_LIST"] if emojis_enabled else tuple(),
+            )
+
+
+@my_super_app.route('/<calendar_id>/<year>/<month>/<day>/<task_id>/', methods=['POST', 'DELETE', 'GET'])
+def delete_task(calendar_id, year, month, day, task_id):
+    print('ok')
+    calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
+    calendar_data.delete_task(
+        calendar_id=calendar_id,
+        year_str=year,
+        month_str=month,
+        day_str=day,
+        task_id=int(task_id),
+    )
+    return jsonify({'success': 'OK'})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
+    api.add_resource(task_resource.Task, '/<calendar_id>/new_task')
     my_super_app.run(host='0.0.0.0', port=port)
