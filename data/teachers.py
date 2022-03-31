@@ -18,6 +18,8 @@ class Teacher(Database, UserMixin, SerializerMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
+    students = sqlalchemy.Column(sqlalchemy.String, nullable=True) # id всех учеников, у которых преподает учитель.
+    # Записываются через запятую пробел
     user = orm.relation('User')
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)

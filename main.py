@@ -16,7 +16,7 @@ from calendar_data import CalendarData, WEEK_START_DAY_MONDAY
 from data import db_session, is_teacher_recource, task_resource
 from data.users import User
 from gregorian_calendar import GregorianCalendar
-from help_function import calendar_name
+from help_function import calendar_name, students_for_teacher, get_student_id
 
 my_super_app = Flask(__name__)
 my_super_app.config.from_object("config")
@@ -179,11 +179,18 @@ def cabinet():
                            weekdays_headers=weekdays_headers, )
 
 
-
 @my_super_app.route('/teacher_cabinet')
 @login_required
 def teacher_cabinet():
-    calendar_title = 'calendar.json'
+    return render_template('teacher_cabinet.html',
+                           title='Личный кабинет')
+
+
+@my_super_app.route('/teacher_calendar/<string:user_name>/')
+@login_required
+def teacher_calendar(user_name):
+    calendar_title = calendar_name(get_student_id(user_name))
+    students = students_for_teacher(current_user.get_id())
     current_day, current_month, current_year = GregorianCalendar.current_date()
     month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
     calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
@@ -206,7 +213,9 @@ def teacher_cabinet():
                            base_url=current_app.config["BASE_URL"],
                            tasks=tasks,
                            display_view_past_button=current_app.config["SHOW_VIEW_PAST_BUTTON"],
-                           weekdays_headers=weekdays_headers, )
+                           weekdays_headers=weekdays_headers,
+                           students=students,
+                           username=user_name)
 
 
 @my_super_app.route('/<calendar_id>/<year>/<month>/new_task', methods=['GET', 'POST'])

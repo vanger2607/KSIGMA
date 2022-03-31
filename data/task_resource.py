@@ -75,7 +75,6 @@ class Task(Resource):
             dates_to_create.append((year, month, day))
 
         for date_tuple in dates_to_create:
-            print('good')
             year, month, day = date_tuple
             calendar_data.create_task(
                 calendar_id=calendar_id,
@@ -93,21 +92,4 @@ class Task(Resource):
                 repetition_subtype=repetition_subtype,
                 repetition_value=repetition_value,
             )
-        return jsonify({'success': 'OK'})
-    @staticmethod
-    def delete(calendar_id: str):
-        print('ok')
-        args = parser.parse_args()
-        year = args['year']
-        month = args['month']
-        day = args['day']
-        task_id = args['task_id']
-        calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
-        calendar_data.delete_task(
-            calendar_id=calendar_id,
-            year_str=year,
-            month_str=month,
-            day_str=day,
-            task_id=int(task_id),
-        )
         return jsonify({'success': 'OK'})

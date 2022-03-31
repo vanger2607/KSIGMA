@@ -6,6 +6,7 @@
     <title>cabinet</title>
     <link rel="stylesheet" href="{{ url_for("static", filename="style.css") }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for("static", filename="") }}favicon_{{ current_day }}.png" id="favicon">
+
     <meta name="viewport" content="width=400" charset="UTF-8" />
 </head>
 <body>
@@ -13,6 +14,16 @@
     <div id="statusbar" class="">Processing...</div>
 
     <div class="header">
+    <label for="classSelect">ученики</label>
+                                        <select class="form-control" id="s" name="class" onchange='findOption()'>
+                                          {% for student in students %}
+                                            {% if student == username%}
+                                            <option value="{{student}}" selected="selected">{{student}}</option>
+                                            {% else %}
+                                            <option value={{student}}> {{student}}</option>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </select>
 
 
     <ul class="calendar-header">
@@ -338,10 +349,16 @@
 
         return;
     };
+    function findOption() {
+        var select = document.getElementById("s");
+        var value = select.value;
+        alert(value);
+        window.location = "{{base_url}}teacher_calendar/"+ value + "/";
+
+}
 </script>
+
 </body>
 </html>
 
-</script>
-</body>
 {% endblock %}
