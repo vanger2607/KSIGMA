@@ -3,7 +3,7 @@ import smtplib
 from datetime import timedelta
 
 import flask
-from flask import Flask, render_template, request, redirect, make_response, current_app, jsonify
+from flask import Flask, render_template, request, redirect, make_response, current_app, jsonify, url_for
 from flask_jwt_simple import JWTManager
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import abort, Api
@@ -216,6 +216,18 @@ def teacher_calendar(user_name):
                            weekdays_headers=weekdays_headers,
                            students=students,
                            username=user_name)
+
+
+@my_super_app.route('/teacher_calendar/tasks/', methods=['POST', 'GET'])
+@login_required
+def tasks():
+    if request.method == 'GET':
+        return render_template('tasks.html', title='Создание задачи')
+    elif request.method == 'POST':
+        print(request.form.get('text'))
+        print(request.form.get('class'))
+        print(request.form.get('file'))
+        return "Задача отправлена"
 
 
 @my_super_app.route('/<calendar_id>/<year>/<month>/new_task', methods=['GET', 'POST'])

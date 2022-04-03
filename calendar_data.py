@@ -30,6 +30,7 @@ class CalendarData:
         self.gregorian_calendar.setfirstweekday(first_weekday)
 
     def load_calendar(self, filename: str) -> Dict:
+        print(filename)
         with open(filename) as file:
             contents = json.load(file)
         if type(contents) is not dict:
