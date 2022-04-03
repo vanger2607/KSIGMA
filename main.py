@@ -218,11 +218,11 @@ def teacher_calendar(user_name):
                            username=user_name)
 
 
-@my_super_app.route('/teacher_calendar/tasks/', methods=['POST', 'GET'])
+@my_super_app.route('/teacher/tasks', methods=['POST', 'GET'])
 @login_required
 def tasks():
     if request.method == 'GET':
-        return render_template('tasks.html', title='Создание задачи')
+        return render_template('teach_create_task.html', title='Создание задачи')
     elif request.method == 'POST':
         print(request.form.get('text'))
         print(request.form.get('class'))
