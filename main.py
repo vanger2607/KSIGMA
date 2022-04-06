@@ -16,7 +16,8 @@ from calendar_data import CalendarData, WEEK_START_DAY_MONDAY
 from data import db_session, is_teacher_recource, task_resource
 from data.users import User
 from gregorian_calendar import GregorianCalendar
-from help_function import calendar_name, students_for_teacher, get_student_id
+from help_function import calendar_name, students_for_teacher, get_student_id, get_info_about_task, \
+    get_task_name_by_object, all_tasks, append_tasks_to_lesson
 
 my_super_app = Flask(__name__)
 my_super_app.config.from_object("config")
@@ -129,54 +130,9 @@ def logout():
 
 
 @my_super_app.route('/cabinet')
+@login_required
 def cabinet():
-
-    calendar_title = calendar_name(current_user.get_id())
-    GregorianCalendar.setfirstweekday(current_app.config["WEEK_STARTING_DAY"])
-
-    current_day, current_month, current_year = GregorianCalendar.current_date()
-    year = int(request.args.get("y", current_year))
-    year = max(min(year, current_app.config["MAX_YEAR"]), current_app.config["MIN_YEAR"])
-    month = int(request.args.get("m", current_month))
-    month = max(min(month, 12), 1)
-    month_name = GregorianCalendar.MONTH_NAMES[month - 1]
-
-    if current_app.config["HIDE_PAST_TASKS"]:
-        view_past_tasks = False
-    else:
-        view_past_tasks = request.cookies.get("ViewPastTasks", "1") == "1"
-
-    calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
-    try:
-        data = calendar_data.load_calendar(calendar_title)
-    except FileNotFoundError:
-        abort(404)
-        print('good')
-
-    tasks = calendar_data.tasks_from_calendar(year, month, data)
-    tasks = calendar_data.add_repetitive_tasks_from_calendar(year, month, data, tasks)
-
-    if not view_past_tasks:
-        calendar_data.hide_past_tasks(year, month, tasks)
-
-    if current_app.config["WEEK_STARTING_DAY"] == WEEK_START_DAY_MONDAY:
-        weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
-    else:
-        weekdays_headers = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
-    print('ok')
-    return render_template('calendar.html',
-                           title='Личный кабинет', calendar_id=calendar_title,
-                           year=current_year,
-                           month=current_month,
-                           month_name=month_name,
-                           current_year=current_year,
-                           current_month=current_month,
-                           current_day=current_day,
-                           month_days=GregorianCalendar.month_days(current_year, current_month),
-                           base_url=current_app.config["BASE_URL"],
-                           tasks=tasks,
-                           display_view_past_button=current_app.config["SHOW_VIEW_PAST_BUTTON"],
-                           weekdays_headers=weekdays_headers, )
+    return render_template('cabinet.html')
 
 
 @my_super_app.route('/teacher_cabinet')
@@ -286,7 +242,62 @@ def delete_task(calendar_id, year, month, day, task_id):
         task_id=int(task_id),
     )
     return jsonify({'success': 'OK'})
+@my_super_app.route('/calendar_student')
+def student_calendar():
+    calendar_title = calendar_name(current_user.id)
+    current_day, current_month, current_year = GregorianCalendar.current_date()
+    month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
+    calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
+    try:
+        data = calendar_data.load_calendar(calendar_title)
+    except FileNotFoundError:
+        abort(404)
+    tasks = calendar_data.tasks_from_calendar(current_year, current_month, data)
+    tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year, current_month, data, tasks)
+    weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+    return render_template('calendar.html',
+                           title='Личный кабинет', calendar_id=calendar_title,
+                           year=current_year,
+                           month=current_month,
+                           month_name=month_name,
+                           current_year=current_year,
+                           current_month=current_month,
+                           current_day=current_day,
+                           month_days=GregorianCalendar.month_days(current_year, current_month),
+                           base_url=current_app.config["BASE_URL"],
+                           tasks=tasks,
+                           display_view_past_button=current_app.config["SHOW_VIEW_PAST_BUTTON"],
+                           weekdays_headers=weekdays_headers)
 
+
+@my_super_app.route('/create_lesson/<filter>/')
+def create_lesson(filter):
+    print(filter)
+    if filter == 'None':
+        tasks = all_tasks()
+        print(tasks)
+        return render_template('create_lesson.html', title='Создание уроков', tasks=tasks,
+                               objects=['math', 'russia'],  base_url=current_app.config["BASE_URL"])
+    else:
+        tasks = get_task_name_by_object(filter)
+        return render_template('create_lesson.html', title='Создание уроков', tasks=tasks,
+                               objects=['math', 'russia'], base_url=current_app.config["BASE_URL"])
+
+
+@my_super_app.route('/view_task/<task>/', methods=['POST', 'DELETE', 'GET'])
+def view_task(task):
+    task_type, questions= get_info_about_task(task)
+    questions = [questions]
+    print('qwe')
+    print(task_type)
+    return render_template('view_task.html', task_type=task_type, questions=questions)
+@my_super_app.route('/lesson', methods=['POST', 'DELETE', 'GET'])
+def lesson():
+    lst = request.form.get('array').split(',')
+    print(lst)
+    append_tasks_to_lesson(lst)
+
+    return jsonify({'succes': 'Ok'})
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     api.add_resource(task_resource.Task, '/<calendar_id>/new_task')

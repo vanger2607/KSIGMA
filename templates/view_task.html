@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+
+{% block content %}
+{% if task_type == "close"%}
+    {% for question in questions %}
+    <p>{{question}}</p>
+    <p><input type="text"></p>
+    {% endfor %}
+    {% endif %}
+{% endblock %}

@@ -27,10 +27,7 @@ parser.add_argument('repetition_value')
 class Task(Resource):
     @staticmethod
     def post(calendar_id):
-        session = db_session.create_session()
         args = parser.parse_args()
-        # calendar_name = db_session.query(CalendarDB.name).filter(CalendarDB.id == student_id)
-        print('ok5')
         title = args["title"].strip()
         startdate = args["date"]
         enddate = args["enddate"]

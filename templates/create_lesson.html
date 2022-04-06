@@ -1,0 +1,91 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>.
+.### {
+    position: fixed; /* Фиксированное положение */
+    right: 10px; /* Расстояние от правого края окна браузера */
+    top: 40%; /* Расстояние сверху */
+   }
+#table{
+border: 5px solid #B22222;
+border-radius: 1px;
+margin-top: 2px;
+margin-bottom: 2px;
+width: 20%;
+}
+#task{
+border: 5px solid #B22222;
+border-radius: 1px;
+margin-top: 2px;
+top: 30%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 20%;
+}
+.tasks_table    {background: silver}
+.tasks_table td {background: white; color: black}
+.tasks_table td.act {background: black; color: white}
+</style>
+
+<div class="w3-container" id="table">
+    <label form="classSelect">фильтр по предметам</label>
+                                        <select class="form-control"  name="filter" onchange='findOption()'>
+                                          {% for object in objects %}
+                                            {% if object== object_now%}
+                                            <option value="{{object}}" selected="selected">{{object}}</option>
+                                            {% else %}
+                                            <option value={{object}}> {{object}}</option>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </select>
+    <table class="tasks_table" onclick="r(elem)"  id="s" >
+      <thead>
+        <tr>
+          <th>Task_name</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for task in tasks%}
+          <tr>
+              <td data="{{task}}" onclick=r(this) oncontextmenu="testFunction(this)">{{task}}</td>
+         </tr>
+      {% endfor %}
+      </tbody>
+        <div oncontextmenu = "testFunction(elem)"> кликни на меня правой </div>
+    </table>
+        <input class="form-button" onclick="save()" value="Save" />
+</div>
+<div class="w3-container", id="task">
+<ol id="ol" class="tasks_correct">
+
+</ol>
+</div>
+
+<script>
+function testFunction(elem) {
+    let liFirst = document.createElement('li');
+    liFirst.innerHTML = elem.textContent
+    liFirst.id = elem.textContent
+    var elem_id = elem.textContent
+    liFirst.setAttribute('class', 'good')
+    liFirst.setAttribute('onclick', 'remove_it("'+elem_id+'")');
+  ol.prepend(liFirst);
+}
+function r(elem)
+{var win=window.open("{{base_url}}/view_task/" + elem.textContent + "/");
+}
+function remove_it(elem_id){document.getElementById(elem_id).remove();}
+function save(){const formData = new FormData();
+var a = Array.from(document.getElementsByClassName("good"));
+var lst = []
+a.forEach(function(element){lst.push(element.textContent);});
+formData.append('array', lst)
+fetch("{{base_url}}/" + "lesson", {method: 'POST',
+body: formData});
+}
+
+</script>
+
+{% endblock %}
