@@ -24,6 +24,66 @@ position: absolute;
 margin-bottom: 2px;
 width: 20%;
 }
+@media (min-width: 1016px) and (max-width: 1180px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 30%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 23%;
+}
+}
+@media (min-width: 900px) and (max-width: 1016px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 30%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 25%;
+}
+}
+@media (min-width: 876px) and (max-width: 935px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 35%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 29%;
+}
+}
+@media (min-width: 700px) and (max-width: 876px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 48%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 32%;
+}
+}
 #statusbar {
     position: fixed;
     top: 0;
@@ -49,8 +109,9 @@ width: 20%;
 }
 .name{top: 30%;
 left: 30%;}
-</style>
 
+</style>
+<link href="media-queries.css" rel="stylesheet" type="text/css">
 <div class="w3-container" id="table">
     <div id="statusbar" class="">Lesson was created</div>
     <label form="classSelect">фильтр по предметам</label>
@@ -63,7 +124,7 @@ left: 30%;}
                                             {% endif %}
                                             {% endfor %}
                                         </select>
-    <table class="tasks_table" onclick="r(elem)"  id="s" >
+    <table class="tasks_table" id="s" >
       <thead>
         <tr>
           <th>Task_name</th>
@@ -72,7 +133,7 @@ left: 30%;}
       <tbody>
       {% for task in tasks%}
           <tr>
-              <td data="{{task}}" onclick=r(this) oncontextmenu="testFunction(this)">{{task}}</td>
+              <td data="{{task}}"  onclick="handlerClick(this)"   >{{task}}</td>
          </tr>
       {% endfor %}
       </tbody>
@@ -98,6 +159,7 @@ left: 30%;}
 
 <script>
 function testFunction(elem) {
+    timerId = clearTimeout(timerId);
     let liFirst = document.createElement('li');
     liFirst.innerHTML = elem.textContent
     liFirst.id = elem.textContent
@@ -107,7 +169,8 @@ function testFunction(elem) {
   ol.prepend(liFirst);
 }
 function r(elem)
-{var win=window.open("{{base_url}}/view_task/" + elem.textContent + "/");
+{timerId = clearTimeout(timerId);
+var win=window.open("{{base_url}}/view_task/" + elem.textContent + "/");
 }
 
 function remove_it(elem_id){document.getElementById(elem_id).remove();}
@@ -140,6 +203,17 @@ function ShowStatusbar() {
     }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+let timerId = null;
+function handlerClick(elem) {
+  if (!timerId) {
+    timerId = setTimeout(() => {
+      r(elem)
+    }, 200);
+  } else {
+    testFunction(elem)
+  }
+
 }
 </script>
 
