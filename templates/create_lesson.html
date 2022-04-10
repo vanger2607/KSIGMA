@@ -84,6 +84,20 @@ margin-bottom: 2px;
 width: 32%;
 }
 }
+@media  (max-width: 780px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 55%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 37%;
+}
 #statusbar {
     position: fixed;
     top: 0;
@@ -110,51 +124,52 @@ width: 32%;
 .name{top: 30%;
 left: 30%;}
 
+
 </style>
 <link href="media-queries.css" rel="stylesheet" type="text/css">
 <div class="w3-container" id="table">
     <div id="statusbar" class="">Lesson was created</div>
     <label form="classSelect">фильтр по предметам</label>
-                                        <select class="form-control"  name="filter" onchange='reload(this)'>
-                                          {% for object in objects %}
-                                            {% if object== object_now%}
-                                            <option value="{{object}}" selected="selected">{{object}}</option>
-                                            {% else %}
-                                            <option value={{object}}> {{object}}</option>
-                                            {% endif %}
-                                            {% endfor %}
-                                        </select>
-    <table class="tasks_table" id="s" >
-      <thead>
+    <select class="form-control" name="filter" onchange='reload(this)'>
+        {% for object in objects %}
+        {% if object== object_now%}
+        <option value="{{object}}" selected="selected">{{object}}</option>
+        {% else %}
+        <option value={{object}}> {{object}}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    <table class="tasks_table" id="s">
+        <thead>
         <tr>
-          <th>Task_name</th>
+            <th>Task_name</th>
         </tr>
-      </thead>
-      <tbody>
-      {% for task in tasks%}
-          <tr>
-              <td data="{{task}}"  onclick="handlerClick(this)"   >{{task}}</td>
-         </tr>
-      {% endfor %}
-      </tbody>
-        <div oncontextmenu = "testFunction(elem)"> кликни на меня правой </div>
+        </thead>
+        <tbody>
+        {% for task in tasks%}
+        <tr>
+            <td data="{{task}}" onclick="handlerClick(this)">{{task}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+        <div oncontextmenu="testFunction(elem)"> кликни на меня правой</div>
     </table>
 </div>
-<div class="w3-container", id="task">
-        <p></p>
+<div class="w3-container" , id="task">
+    <p></p>
 
     {{form.text_name(class="name", id="lesson_name", placeholder="название урока")}}
     {% for error in form.text_name.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
+    <p class="alert alert-danger" role="alert">
+        {{ error }}
+    </p>
+    {% endfor %}
 
 
-<ol id="ol" class="tasks_correct">
+    <ol id="ol" class="tasks_correct">
 
-</ol>
-        <input class="form-button" type="submit" value="Save" onclick="save()" />
+    </ol>
+    <input class="form-button" type="submit" value="Save" onclick="save()"/>
 </div>
 
 <script>
@@ -215,6 +230,7 @@ function handlerClick(elem) {
   }
 
 }
+
 </script>
 
 {% endblock %}
