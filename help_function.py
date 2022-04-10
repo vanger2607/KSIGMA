@@ -1,6 +1,7 @@
 from data.calendar import CalendarDB
 from data.db_session import global_init, create_session
 from data.lesson import Lesson
+from data.objects import Objects
 from data.tasks import SuperTasks
 from data.teachers import Teacher
 from data.users import User
@@ -51,11 +52,12 @@ def get_info_about_task(task):
         return [task.type, task.question]
 
 
-def get_task_name_by_object(object):
+def get_task_name_by_object(object_name):
     """по предмету(школьного) возвращает список задач"""
     db_sess = connect_to_db('users.db')
     tasks = []
-    for task in (db_sess.query(SuperTasks).filter(SuperTasks.type_object == object)):
+    object_id = get_object_id_by_name(object_name)
+    for task in (db_sess.query(SuperTasks).filter(SuperTasks.type_object == object_id)):
         tasks.append(task.name)
     return tasks
 
@@ -80,3 +82,7 @@ def append_tasks_to_lesson(tasks):
     lesson.tasks = ', '.join(tasks_id)
     db_sess.add(lesson)
     db_sess.commit()
+def get_object_id_by_name(object_name: str):
+    db_sess = connect_to_db('users.db')
+    for object_ in (db_sess.query(Objects).filter(Objects.name == object_name.capitalize())).all():
+        return object_.id

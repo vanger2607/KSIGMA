@@ -8,14 +8,14 @@
     top: 40%; /* Расстояние сверху */
    }
 #table{
-border: 5px solid #B22222;
+border: 5px solid #A1D360;
 border-radius: 1px;
 margin-top: 2px;
 margin-bottom: 2px;
 width: 20%;
 }
 #task{
-border: 5px solid #B22222;
+border: 5px solid #A1D360;
 border-radius: 1px;
 margin-top: 2px;
 top: 30%;
@@ -24,14 +24,37 @@ position: absolute;
 margin-bottom: 2px;
 width: 20%;
 }
+#statusbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 26px;
+    z-index: 4000000;
+    visibility: hidden;
+    font-weight: 700;
+    text-align: center;
+}
+.processing {
+    visibility: visible !important;
+    color: #F7F7F7;
+    background-color: #A1D360;
+}
 .tasks_table    {background: silver}
 .tasks_table td {background: white; color: black}
 .tasks_table td.act {background: black; color: white}
+:active, :hover, :focus {
+    outline: 0;
+    outline-offset: 0;
+}
+.name{top: 30%;
+left: 30%;}
 </style>
 
 <div class="w3-container" id="table">
+    <div id="statusbar" class="">Lesson was created</div>
     <label form="classSelect">фильтр по предметам</label>
-                                        <select class="form-control"  name="filter" onchange='findOption()'>
+                                        <select class="form-control"  name="filter" onchange='reload(this)'>
                                           {% for object in objects %}
                                             {% if object== object_now%}
                                             <option value="{{object}}" selected="selected">{{object}}</option>
@@ -55,12 +78,22 @@ width: 20%;
       </tbody>
         <div oncontextmenu = "testFunction(elem)"> кликни на меня правой </div>
     </table>
-        <input class="form-button" onclick="save()" value="Save" />
 </div>
 <div class="w3-container", id="task">
+        <p></p>
+
+    {{form.text_name(class="name", id="lesson_name", placeholder="название урока")}}
+    {% for error in form.text_name.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+
+
 <ol id="ol" class="tasks_correct">
 
 </ol>
+        <input class="form-button" type="submit" value="Save" onclick="save()" />
 </div>
 
 <script>
@@ -76,16 +109,38 @@ function testFunction(elem) {
 function r(elem)
 {var win=window.open("{{base_url}}/view_task/" + elem.textContent + "/");
 }
+
 function remove_it(elem_id){document.getElementById(elem_id).remove();}
-function save(){const formData = new FormData();
+
+async function save(){const formData = new FormData();
+var val = document.getElementById('lesson_name').value;
 var a = Array.from(document.getElementsByClassName("good"));
 var lst = []
 a.forEach(function(element){lst.push(element.textContent);});
 formData.append('array', lst)
+formData.append('name', val)
+if (val.length ==0) {alert("введите имя урока");}
+else if (lst.length ==0) {alert("выберите задачи, из которых будет состоять урок");}
+else{
 fetch("{{base_url}}/" + "lesson", {method: 'POST',
 body: formData});
-}
+ShowStatusbar();
+await sleep(3 * 1000);
+HideStatusbar();};
 
+}
+function reload(filter_name){window.location = "{{base_url}}create_lesson/"+ filter_name.value + "/";
+}
+function ShowStatusbar() {
+        document.getElementById("statusbar").className = "processing";
+    };
+
+    function HideStatusbar() {
+        document.getElementById("statusbar").className = "";
+    }
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 </script>
 
 {% endblock %}

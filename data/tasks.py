@@ -9,7 +9,7 @@ class SuperTasks(Database, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    name = sqlalchemy.Column(sqlalchemy.String)
+    name = sqlalchemy.Column(sqlalchemy.String, unique=True)
     type_object = sqlalchemy.Column(sqlalchemy.Integer,
                                sqlalchemy.ForeignKey("Object.id"))
     type = sqlalchemy.Column(sqlalchemy.String)

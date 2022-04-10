@@ -59,6 +59,8 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Войти')
 
 
+class LessonForm(FlaskForm):
+    text_name = StringField('название урока', validators=[DataRequired()])
 @my_super_app.route('/')
 def start():
     return render_template('index.html', title='SuperKsigma')
@@ -270,18 +272,28 @@ def student_calendar():
                            weekdays_headers=weekdays_headers)
 
 
-@my_super_app.route('/create_lesson/<filter>/')
-def create_lesson(filter):
-    print(filter)
-    if filter == 'None':
-        tasks = all_tasks()
-        print(tasks)
-        return render_template('create_lesson.html', title='Создание уроков', tasks=tasks,
-                               objects=['math', 'russia'],  base_url=current_app.config["BASE_URL"])
+@my_super_app.route('/create_lesson/<filter_name>/', methods=["GET", "POST"])
+def create_lesson(filter_name):
+    form = LessonForm()
+    if filter_name == 'None':
+        tasks_ = all_tasks()
+
+        if form.validate_on_submit():
+            return render_template('create_lesson.html', title='Создание уроков', tasks=tasks_,
+                                   objects=['math', 'russia'], base_url=current_app.config["BASE_URL"],
+                                   object_now=filter_name, form=form)
+        return(render_template('create_lesson.html', title='Создание уроков', tasks=tasks_,
+                                   objects=['math', 'russia'], base_url=current_app.config["BASE_URL"],
+                                   object_now=filter_name, form=form))
     else:
-        tasks = get_task_name_by_object(filter)
-        return render_template('create_lesson.html', title='Создание уроков', tasks=tasks,
-                               objects=['math', 'russia'], base_url=current_app.config["BASE_URL"])
+        tasks_ = get_task_name_by_object(filter_name)
+        if form.validate_on_submit():
+            return render_template('create_lesson.html', title='Создание уроков', tasks=tasks_,
+                                   objects=['math', 'russia'], base_url=current_app.config["BASE_URL"],
+                                   object_now=filter_name, form=form)
+        return render_template('create_lesson.html', title='Создание уроков', tasks=tasks_,
+                               objects=['math', 'russia'], base_url=current_app.config["BASE_URL"],
+                               object_now=filter_name, form=form)
 
 
 @my_super_app.route('/view_task/<task>/', methods=['POST', 'DELETE', 'GET'])
