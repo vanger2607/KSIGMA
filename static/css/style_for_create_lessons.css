@@ -1,0 +1,254 @@
+.### {
+    position: fixed; /* Фиксированное положение */
+    right: 10px; /* Расстояние от правого края окна браузера */
+    top: 40%; /* Расстояние сверху */
+   }
+#table{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+margin-bottom: 2px;
+width: 20%;
+}
+#task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 30%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 20%;
+}
+@media (min-width: 1016px) and (max-width: 1180px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 30%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 23%;
+}
+}
+@media (min-width: 900px) and (max-width: 1016px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 30%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 25%;
+}
+}
+@media (min-width: 876px) and (max-width: 935px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 35%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 29%;
+}
+}
+@media (min-width: 780px) and (max-width: 876px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 48%;
+left: 30%;
+position: absolute;
+margin-bottom: 2px;
+width: 32%;
+}
+}
+
+@media  (min-width: 642px) and (max-width: 780px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid  #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 45%;
+left: 40%;
+position: absolute;
+margin-bottom: 2px;
+width: 40%;
+}
+}
+@media  (min-width: 631px) and (max-width: 642px) {
+   header {
+      padding: 10px 0;
+   }
+  #task{
+border: 5px solid  #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 50%;
+left: 44%;
+position: absolute;
+margin-bottom: 2px;
+width: 40%;
+}
+}
+@media  (min-width: 500px) and (max-width: 631px) {
+   header {
+      padding: 10px 0;
+   }
+   #table{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+margin-bottom: 2px;
+width: 32%;
+left: 20%;
+}
+  #task{
+border: 5px solid  #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 56%;
+left: 46%;
+position: absolute;
+margin-bottom: 2px;
+width: 47%;
+}
+}
+@media  (min-width: 473px) and (max-width: 500px) {
+   header {
+      padding: 10px 0;
+   }
+   #table{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+margin-bottom: 2px;
+width: 37%;
+left: 20%;
+}
+  #task{
+border: 5px solid  #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 56%;
+left: 46%;
+position: absolute;
+margin-bottom: 2px;
+width: 50%;
+}
+}
+#statusbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 26px;
+    z-index: 4000000;
+    visibility: hidden;
+    font-weight: 700;
+    text-align: center;
+}
+.processing {
+    visibility: visible !important;
+    color: #F7F7F7;
+    background-color: #A1D360;
+}
+.tasks_table    {background: silver}
+.tasks_table td {background: white; color: black}
+.tasks_table td.act {background: black; color: white}
+:active, :hover, :focus {
+    outline: 0;
+    outline-offset: 0;
+}
+.name{top: 30%;
+left: 30%;}
+
+@media  (min-width: 400px) and (max-width: 473px) {
+   header {
+      padding: 10px 0;
+   }
+   #table{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+margin-bottom: 2px;
+width: 43%;
+left: 20%;
+}
+  #task{
+border: 5px solid  #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 56%;
+left: 46%;
+position: absolute;
+margin-bottom: 2px;
+width: 56%;
+}
+}
+
+@media  (min-width: 350px) and (max-width: 400px) {
+   header {
+      padding: 10px 0;
+   }
+   #table{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+margin-bottom: 2px;
+width: 47%;
+left: 20%;
+}
+  #task{
+border: 5px solid  #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 56%;
+left: 46%;
+position: absolute;
+margin-bottom: 2px;
+width: 59%;
+}
+}
+@media  (min-width: 300px) and (max-width: 350px) {
+   header {
+      padding: 10px 0;
+   }
+   #table{
+border: 5px solid #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+margin-bottom: 2px;
+width: 50%;
+}
+  #task{
+border: 5px solid  #A1D360;
+border-radius: 1px;
+margin-top: 2px;
+top: 56%;
+left: 57%;
+position: absolute;
+margin-bottom: 2px;
+width: 63%;
+}
+}
