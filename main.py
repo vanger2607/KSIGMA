@@ -193,23 +193,23 @@ def tasks():
 @login_required
 def check_tasks():
     files = request.files['file'].read()
-    filess = codecs.decode(files)
+    filess = files.decode('utf-8-sig')
     print(filess)
-    if 'variations_of_answers' not in ''.join(filess):
-        type = 'enter'
-        i = filess[1].strip().split(': ')
-        questions = ''.join(i[1:]).split(', ')
-        print(questions)
-        i = filess[2].strip().split(': ')
-        answers = ''.join(i[1:]).split(', ')
-        print(answers)
+    filess = filess.strip().split('\n')
+    print(filess)
+    if 'Variations_of_answers' not in filess:
+        for i in filess:
+            #проводишь какую-то работу над файлом в этом цикле или #filess =
+            # [i.strip() for i in filess] и получается [0] - Questions [1] - Answers ну а с vartiations_of_answers они будут [1]
+            i = i.strip()
+            print(i)
     else:
         questions = ''.join(filess[0].strip().split(': '))
         print(questions)
         variations_of_answers = filess[1].strip().split(': ')
         variations_of_answers = ''.join(variations_of_answers[1:]).split(', ')
         print(variations_of_answers)
-        answers = filess[2].strip().split(': ')
+        answers = filess[3].strip().split(': ')
         answers = ''.join(answers[1:]).split(', ')
         print(answers)
     return render_template('teach_check.html', title='Проверка задачи', file=filess)
