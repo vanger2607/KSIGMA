@@ -2,7 +2,7 @@
    box-sizing: border-box;
 }
 body {
-   background: #f69a73;
+   background: linear-gradient(180deg, #699BDD 0%, #DAD1F5 100%);
 }
 .decor {
    position: relative;
@@ -16,7 +16,7 @@ body {
    position: absolute;
    width: 50px;
    height: 20px;
-   background: #f69a73;
+   background: linear-gradient(180deg, #699BDD 0%, #DAD1F5 100%);
    border-radius: 20px;
 }
 .form-left-decoration {
@@ -67,7 +67,7 @@ body {
    width: 100%;
    padding: 0 20px;
    margin-bottom: 10px;
-   background: #E9EFF6;
+   background: linear-gradient(180deg, #699BDD 0%, #DAD1F5 100%);
    line-height: 40px;
    border-width: 0;
    border-radius: 20px;
@@ -75,8 +75,8 @@ body {
 }
 .form-inner input[type="submit"] {
    margin-top: 30px;
-   background: #f69a73;
-   border-bottom: 4px solid #d87d56;
+   background: linear-gradient(180deg, #699BDD 0%, #DAD1F5 100%);
+   border-bottom: 4px solid linear-gradient(180deg, #699BDD 0%, #DAD1F5 100%);
    color: white;
    font-size: 14px;
 }
@@ -89,4 +89,7 @@ body {
    font-weight: 500;
    font-size: 24px;
    color: #707981;
+}
+.form-control-file {
+    background: linear-gradient(180deg, #699BDD 0%, #DAD1F5 100%)
 }

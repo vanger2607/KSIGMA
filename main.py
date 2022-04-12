@@ -1,4 +1,5 @@
 import os
+import codecs
 import smtplib
 from datetime import timedelta
 
@@ -49,7 +50,7 @@ class RegisterForm(FlaskForm):
     name = StringField('Имя пользователя', validators=[DataRequired()])
     grade = SelectField('Класс', choices=[5, 6, 7, 8, 9, 10, 11])
     about = TextAreaField("Немного о себе")
-    submit = SubmitField('Войти/Зарегестрироваться')
+    submit = SubmitField('Войти/Зарегистрироваться')
 
 
 class LoginForm(FlaskForm):
@@ -183,10 +184,35 @@ def tasks():
         return render_template('teach_create_task.html', title='Создание задачи')
     elif request.method == 'POST':
         print(request.form.get('text'))
-        print(request.form.get('class'))
+        print(request.form.get('lesson'))
         print(request.form.get('file'))
-        return "Задача отправлена"
+        return redirect('/teacher/check_tasks')
 
+
+@my_super_app.route('/teacher/check_tasks', methods=['POST', 'GET'])
+@login_required
+def check_tasks():
+    files = request.files['file'].read()
+    filess = codecs.decode(files)
+    print(filess)
+    if 'variations_of_answers' not in ''.join(filess):
+        type = 'enter'
+        i = filess[1].strip().split(': ')
+        questions = ''.join(i[1:]).split(', ')
+        print(questions)
+        i = filess[2].strip().split(': ')
+        answers = ''.join(i[1:]).split(', ')
+        print(answers)
+    else:
+        questions = ''.join(filess[0].strip().split(': '))
+        print(questions)
+        variations_of_answers = filess[1].strip().split(': ')
+        variations_of_answers = ''.join(variations_of_answers[1:]).split(', ')
+        print(variations_of_answers)
+        answers = filess[2].strip().split(': ')
+        answers = ''.join(answers[1:]).split(', ')
+        print(answers)
+    return render_template('teach_check.html', title='Проверка задачи', file=filess)
 
 @my_super_app.route('/<calendar_id>/<year>/<month>/new_task', methods=['GET', 'POST'])
 def new_task_action(calendar_id: str, year: int, month: int):

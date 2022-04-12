@@ -13,21 +13,17 @@
     <link rel="stylesheet" href="{{ url_for("static", filename="style_teach_tasks.css") }}">
 </head>
 <body>
-<h1 align="center">Создание задачи</h1>
+<h1 align="center">Внимательно проверьте</h1>
+<h2 align="center">задание:</h2>
 <div>
-    <form class="decor" method="post" action="{{base_url}}/teacher/check_tasks" enctype="multipart/form-data">
+    <form class="decor" method="post">
         <div class="form-left-decoration"></div>
         <div class="form-right-decoration"></div>
         <div class="circle"></div>
         <div class="form-inner">
-            <h3>Заполните поля</h3>
-            <input type="text" class="form-control" id="task_name" placeholder="Название задачи" name="text">
-            <input type="text" class="form-control" id="lesson_name" placeholder="Название предмета" name="lesson">
-            <div class="form-group">
-                <h3>Загрузите файл задачи</h3>
-                <input type="file" class="form-control-file" id="file_task" name="file">
-            </div>
-            <input type="submit" value="Готово">
+            <p><textarea placeholder="{{  file  }}" rows="8"></textarea></p>
+            <a href="{{base_url}}/teacher_cabinet" class="gradient-button" >Готово</a>
+            <a href="{{base_url}}/teacher/tasks" class="gradient-button" >Назад</a>
         </div>
     </form>
 </div>
