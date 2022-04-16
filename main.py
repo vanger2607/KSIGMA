@@ -1,24 +1,27 @@
 import os
-import codecs
 import smtplib
 from datetime import timedelta
 
 import flask
-from flask import Flask, render_template, request, redirect, make_response, current_app, jsonify, url_for
+from flask import current_app, Flask, jsonify, make_response, redirect, \
+    render_template, request
 from flask_jwt_simple import JWTManager
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_login import current_user, login_required, login_user, LoginManager, \
+    logout_user
 from flask_restful import abort, Api
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField, TextAreaField, SubmitField, SelectField, BooleanField
+from wtforms import BooleanField, PasswordField, SelectField, StringField, \
+    SubmitField, TextAreaField
 from wtforms.fields import EmailField
 from wtforms.validators import DataRequired
 
-from calendar_data import CalendarData, WEEK_START_DAY_MONDAY
+from calendar_data import CalendarData
 from data import db_session, is_teacher_recource, task_resource
 from data.users import User
 from gregorian_calendar import GregorianCalendar
-from help_function import calendar_name, students_for_teacher, get_student_id, get_info_about_task, \
-    get_task_name_by_object, all_tasks, append_tasks_to_lesson
+from help_function import all_tasks, append_tasks_to_lesson, calendar_name, \
+    get_info_about_task, get_student_id, get_task_name_by_object, \
+    students_for_teacher
 
 my_super_app = Flask(__name__)
 my_super_app.config.from_object("config")
@@ -34,7 +37,8 @@ my_super_app.config['JWT_IDENTITY_CLAIM'] = 'user'
 my_super_app.config['JWT_HEADER_NAME'] = 'authorization'
 my_super_app.jwt = JWTManager(my_super_app)
 api = Api(my_super_app, catch_all_404s=True)
-api.add_resource(is_teacher_recource.is_TeacherResource, '/api/_is_teacher/<int:user_id>')
+api.add_resource(is_teacher_recource.is_TeacherResource,
+                 '/api/_is_teacher/<int:user_id>')
 
 
 @login_manager.user_loader
@@ -46,7 +50,8 @@ def load_user(user_id):
 class RegisterForm(FlaskForm):
     email = EmailField('Почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
-    password_again = PasswordField('Повторите пароль', validators=[DataRequired()])
+    password_again = PasswordField('Повторите пароль',
+                                   validators=[DataRequired()])
     name = StringField('Имя пользователя', validators=[DataRequired()])
     grade = SelectField('Класс', choices=[5, 6, 7, 8, 9, 10, 11])
     about = TextAreaField("Немного о себе")
@@ -62,6 +67,8 @@ class LoginForm(FlaskForm):
 
 class LessonForm(FlaskForm):
     text_name = StringField('название урока', validators=[DataRequired()])
+
+
 @my_super_app.route('/')
 def start():
     return render_template('index.html', title='SuperKsigma')
@@ -91,7 +98,8 @@ def reqister():
             smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
             msg = 'Вы зарегистрировались в КСИГМЕ!!! С Вас теперь будут брать ежесуточно налог - 5 рублей'
             print(form.email.data)
-            smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data, msg.encode("utf8"))
+            smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data,
+                             msg.encode("utf8"))
             smtpObj.quit()
         except Exception as e:
             print(e)
@@ -111,11 +119,13 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        user = db_sess.query(User).filter(
+            User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             resp = make_response(redirect('/'))
-            resp.set_cookie("is_teacher", str(user.is_teacher), 60 * 60 * 24 * 15)
+            resp.set_cookie("is_teacher", str(user.is_teacher),
+                            60 * 60 * 24 * 15)
             return resp
         return render_template('login.html',
                                message="Неправильный логин или пароль",
@@ -152,13 +162,17 @@ def teacher_calendar(user_name):
     students = students_for_teacher(current_user.get_id())
     current_day, current_month, current_year = GregorianCalendar.current_date()
     month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
-    calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
+    calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
+                                 current_app.config["WEEK_STARTING_DAY"])
     try:
         data = calendar_data.load_calendar(calendar_title)
     except FileNotFoundError:
         abort(404)
-    tasks = calendar_data.tasks_from_calendar(current_year, current_month, data)
-    tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year, current_month, data, tasks)
+    tasks = calendar_data.tasks_from_calendar(current_year, current_month,
+                                              data)
+    tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year,
+                                                             current_month,
+                                                             data, tasks)
     weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
     return render_template('calendar_teacher.html',
                            title='Личный кабинет', calendar_id=calendar_title,
@@ -168,10 +182,12 @@ def teacher_calendar(user_name):
                            current_year=current_year,
                            current_month=current_month,
                            current_day=current_day,
-                           month_days=GregorianCalendar.month_days(current_year, current_month),
+                           month_days=GregorianCalendar.month_days(
+                               current_year, current_month),
                            base_url=current_app.config["BASE_URL"],
                            tasks=tasks,
-                           display_view_past_button=current_app.config["SHOW_VIEW_PAST_BUTTON"],
+                           display_view_past_button=current_app.config[
+                               "SHOW_VIEW_PAST_BUTTON"],
                            weekdays_headers=weekdays_headers,
                            students=students,
                            username=user_name)
@@ -181,7 +197,8 @@ def teacher_calendar(user_name):
 @login_required
 def tasks():
     if request.method == 'GET':
-        return render_template('teach_create_task.html', title='Создание задачи')
+        return render_template('teach_create_task.html',
+                               title='Создание задачи')
     elif request.method == 'POST':
         print(request.form.get('text'))
         print(request.form.get('lesson'))
@@ -189,39 +206,65 @@ def tasks():
         return redirect('/teacher/check_tasks')
 
 
-@my_super_app.route('/teacher/check_tasks', methods=['POST', 'GET'])
+@my_super_app.route('/teacher/check_tasks', methods=['POST'])
 @login_required
 def check_tasks():
-    files = request.files['file'].read()
-    filess = files.decode('utf-8-sig')
-    print(filess)
-    filess = filess.strip().split('\n')
-    print(filess)
-    if 'Variations_of_answers' not in filess:
-        for i in filess:
-            #проводишь какую-то работу над файлом в этом цикле или #filess =
-            # [i.strip() for i in filess] и получается [0] - Questions [1] - Answers ну а с vartiations_of_answers они будут [1]
-            i = i.strip()
-            print(i)
-    else:
-        questions = ''.join(filess[0].strip().split(': '))
-        print(questions)
-        variations_of_answers = filess[1].strip().split(': ')
-        variations_of_answers = ''.join(variations_of_answers[1:]).split(', ')
-        print(variations_of_answers)
-        answers = filess[3].strip().split(': ')
-        answers = ''.join(answers[1:]).split(', ')
-        print(answers)
-    return render_template('teach_check.html', title='Проверка задачи', file=filess)
+    TEMPLATE = 'teach_check.html'
+    files = request.files['file'].read().decode('utf-8-sig')
+    files_s = [i.strip() for i in files.split('\n')]
+    file = {}
+    for i in files_s:
+        if i:
+            file[i.split(':')[0]] = [j.strip() for j in
+                                     i.split(':')[1].split('|')]
+    file_lines = []
+    error = None
+    if file['Type'][0] == 'close':
+        for i in range(len(file['Questions'])):
+            if i == len(file['Answers']):
+                file_lines = []
+                error = 'Ошибка, ответов меньше чем вопросов'
+                break
+            else:
+                file_lines.append(
+                    file['Questions'][i] + ': ' + file['Answers'][i] + '\n')
+        context = {'title': 'Проверка задачи',
+                   'file_lines': file_lines,
+                   'error': error
+                   }
+        return render_template(TEMPLATE, **context)
+    elif file['Type'][0] == 'open':
+        for i in range(len(file['Questions'])):
+            if i == len(file['Variations_of_answers']):
+                file_lines = []
+                error = 'Ошибка, ответов меньше чем вопросов'
+                break
+            else:
+                file_lines.append({'question': file['Questions'][i] + '\n',
+                                   'answers': [i + '\n' for i in
+                                               file['Variations_of_answers'][
+                                                   i].split(', ')]
+                                   })
 
-@my_super_app.route('/<calendar_id>/<year>/<month>/new_task', methods=['GET', 'POST'])
+        context = {'title': 'Проверка задачи',
+                   'file_lines': file_lines,
+                   'check_box': True,
+                   'error': error
+                   }
+        return render_template(TEMPLATE, **context)
+
+
+@my_super_app.route('/<calendar_id>/<year>/<month>/new_task',
+                    methods=['GET', 'POST'])
 def new_task_action(calendar_id: str, year: int, month: int):
     if flask.request.method == 'GET':
         print('ok2')
-        GregorianCalendar.setfirstweekday(current_app.config["WEEK_STARTING_DAY"])
+        GregorianCalendar.setfirstweekday(
+            current_app.config["WEEK_STARTING_DAY"])
 
         current_day, current_month, current_year = GregorianCalendar.current_date()
-        year = max(min(int(year), current_app.config["MAX_YEAR"]), current_app.config["MIN_YEAR"])
+        year = max(min(int(year), current_app.config["MAX_YEAR"]),
+                   current_app.config["MIN_YEAR"])
         month = max(min(int(month), 12), 1)
         month_names = GregorianCalendar.MONTH_NAMES
 
@@ -241,27 +284,31 @@ def new_task_action(calendar_id: str, year: int, month: int):
         emojis_enabled = current_app.config.get("EMOJIS_ENABLED", False)
 
         return render_template(
-                "task.html",
-                calendar_id=calendar_id,
-                year=year,
-                month=month,
-                min_year=current_app.config["MIN_YEAR"],
-                max_year=current_app.config["MAX_YEAR"],
-                month_names=month_names,
-                task=task,
-                base_url=current_app.config["BASE_URL"],
-                editing=False,
-                emojis_enabled=emojis_enabled,
-                button_default_color_value=current_app.config["BUTTON_CUSTOM_COLOR_VALUE"],
-                buttons_colors=current_app.config["BUTTONS_COLORS_LIST"],
-                buttons_emojis=current_app.config["BUTTONS_EMOJIS_LIST"] if emojis_enabled else tuple(),
-            )
+            "task.html",
+            calendar_id=calendar_id,
+            year=year,
+            month=month,
+            min_year=current_app.config["MIN_YEAR"],
+            max_year=current_app.config["MAX_YEAR"],
+            month_names=month_names,
+            task=task,
+            base_url=current_app.config["BASE_URL"],
+            editing=False,
+            emojis_enabled=emojis_enabled,
+            button_default_color_value=current_app.config[
+                "BUTTON_CUSTOM_COLOR_VALUE"],
+            buttons_colors=current_app.config["BUTTONS_COLORS_LIST"],
+            buttons_emojis=current_app.config[
+                "BUTTONS_EMOJIS_LIST"] if emojis_enabled else tuple(),
+        )
 
 
-@my_super_app.route('/<calendar_id>/<year>/<month>/<day>/<task_id>/', methods=['POST', 'DELETE', 'GET'])
+@my_super_app.route('/<calendar_id>/<year>/<month>/<day>/<task_id>/',
+                    methods=['POST', 'DELETE', 'GET'])
 def delete_task(calendar_id, year, month, day, task_id):
     print('ok')
-    calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
+    calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
+                                 current_app.config["WEEK_STARTING_DAY"])
     calendar_data.delete_task(
         calendar_id=calendar_id,
         year_str=year,
@@ -270,18 +317,24 @@ def delete_task(calendar_id, year, month, day, task_id):
         task_id=int(task_id),
     )
     return jsonify({'success': 'OK'})
+
+
 @my_super_app.route('/calendar_student')
 def student_calendar():
     calendar_title = calendar_name(current_user.id)
     current_day, current_month, current_year = GregorianCalendar.current_date()
     month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
-    calendar_data = CalendarData(current_app.config["DATA_FOLDER"], current_app.config["WEEK_STARTING_DAY"])
+    calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
+                                 current_app.config["WEEK_STARTING_DAY"])
     try:
         data = calendar_data.load_calendar(calendar_title)
     except FileNotFoundError:
         abort(404)
-    tasks = calendar_data.tasks_from_calendar(current_year, current_month, data)
-    tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year, current_month, data, tasks)
+    tasks = calendar_data.tasks_from_calendar(current_year, current_month,
+                                              data)
+    tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year,
+                                                             current_month,
+                                                             data, tasks)
     weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
     return render_template('calendar.html',
                            title='Личный кабинет', calendar_id=calendar_title,
@@ -291,10 +344,12 @@ def student_calendar():
                            current_year=current_year,
                            current_month=current_month,
                            current_day=current_day,
-                           month_days=GregorianCalendar.month_days(current_year, current_month),
+                           month_days=GregorianCalendar.month_days(
+                               current_year, current_month),
                            base_url=current_app.config["BASE_URL"],
                            tasks=tasks,
-                           display_view_past_button=current_app.config["SHOW_VIEW_PAST_BUTTON"],
+                           display_view_past_button=current_app.config[
+                               "SHOW_VIEW_PAST_BUTTON"],
                            weekdays_headers=weekdays_headers)
 
 
@@ -305,30 +360,41 @@ def create_lesson(filter_name):
         tasks_ = all_tasks()
 
         if form.validate_on_submit():
-            return render_template('create_lesson.html', title='Создание уроков', tasks=tasks_,
-                                   objects=['math', 'russia'], base_url=current_app.config["BASE_URL"],
+            return render_template('create_lesson.html',
+                                   title='Создание уроков', tasks=tasks_,
+                                   objects=['math', 'russia'],
+                                   base_url=current_app.config["BASE_URL"],
                                    object_now=filter_name, form=form)
-        return(render_template('create_lesson.html', title='Создание уроков', tasks=tasks_,
-                                   objects=['math', 'russia'], base_url=current_app.config["BASE_URL"],
-                                   object_now=filter_name, form=form))
+        return (render_template('create_lesson.html', title='Создание уроков',
+                                tasks=tasks_,
+                                objects=['math', 'russia'],
+                                base_url=current_app.config["BASE_URL"],
+                                object_now=filter_name, form=form))
     else:
         tasks_ = get_task_name_by_object(filter_name)
         if form.validate_on_submit():
-            return render_template('create_lesson.html', title='Создание уроков', tasks=tasks_,
-                                   objects=['math', 'russia'], base_url=current_app.config["BASE_URL"],
+            return render_template('create_lesson.html',
+                                   title='Создание уроков', tasks=tasks_,
+                                   objects=['math', 'russia'],
+                                   base_url=current_app.config["BASE_URL"],
                                    object_now=filter_name, form=form)
-        return render_template('create_lesson.html', title='Создание уроков', tasks=tasks_,
-                               objects=['math', 'russia'], base_url=current_app.config["BASE_URL"],
+        return render_template('create_lesson.html', title='Создание уроков',
+                               tasks=tasks_,
+                               objects=['math', 'russia'],
+                               base_url=current_app.config["BASE_URL"],
                                object_now=filter_name, form=form)
 
 
 @my_super_app.route('/view_task/<task>/', methods=['POST', 'DELETE', 'GET'])
 def view_task(task):
-    task_type, questions= get_info_about_task(task)
+    task_type, questions = get_info_about_task(task)
     questions = [questions]
     print('qwe')
     print(task_type)
-    return render_template('view_task.html', task_type=task_type, questions=questions)
+    return render_template('view_task.html', task_type=task_type,
+                           questions=questions)
+
+
 @my_super_app.route('/lesson', methods=['POST', 'DELETE', 'GET'])
 def lesson():
     lst = request.form.get('array').split(',')
@@ -336,6 +402,8 @@ def lesson():
     append_tasks_to_lesson(lst)
 
     return jsonify({'succes': 'Ok'})
+
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     api.add_resource(task_resource.Task, '/<calendar_id>/new_task')
