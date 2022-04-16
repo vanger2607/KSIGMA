@@ -24,7 +24,7 @@
         <tbody>
         {% for task in tasks%}
         <tr>
-            <td data="{{task}}" onclick="handlerClick(this)">{{task}}</td>
+            <td data="{{lesson}}" onclick="testFunction(this)">{{lesson}}</td>
         </tr>
         {% endfor %}
         </tbody>
@@ -33,7 +33,7 @@
 <div class="w3-container" , id="task">
     <p></p>
 
-    {{form.text_name(class="name", id="lesson_name", placeholder="название урока")}}
+    {{form.text_name(class="name", id="lesson_name", placeholder="название курса")}}
     {% for error in form.text_name.errors %}
     <p class="alert alert-danger" role="alert">
         {{ error }}
@@ -49,7 +49,6 @@
 
 <script>
 function testFunction(elem) {
-    timerId = clearTimeout(timerId);
     let liFirst = document.createElement('li');
     liFirst.innerHTML = elem.textContent
     liFirst.id = elem.textContent
@@ -58,10 +57,7 @@ function testFunction(elem) {
     liFirst.setAttribute('onclick', 'remove_it("'+elem_id+'")');
   ol.prepend(liFirst);
 }
-function r(elem)
-{timerId = clearTimeout(timerId);
-var win=window.open("{{base_url}}/view_task/" + elem.textContent + "/");
-}
+
 
 function remove_it(elem_id){document.getElementById(elem_id).remove();}
 
@@ -72,10 +68,10 @@ var lst = []
 a.forEach(function(element){lst.push(element.textContent);});
 formData.append('array', lst)
 formData.append('name', val)
-if (val.length ==0) {alert("введите имя урока");}
-else if (lst.length ==0) {alert("выберите задачи, из которых будет состоять урок");}
+if (val.length ==0) {alert("введите название курса");}
+else if (lst.length ==0) {alert("выберите уроки, из которых будет состоять курс");}
 else{
-fetch("{{base_url}}/" + "lesson", {method: 'POST',
+fetch("{{base_url}}/" + "creating_course", {method: 'POST',
 body: formData});
 ShowStatusbar();
 await sleep(3 * 1000);
@@ -94,17 +90,7 @@ function ShowStatusbar() {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-let timerId = null;
-function handlerClick(elem) {
-  if (!timerId) {
-    timerId = setTimeout(() => {
-      r(elem)
-    }, 200);
-  } else {
-    testFunction(elem)
-  }
 
-}
 
 </script>
 

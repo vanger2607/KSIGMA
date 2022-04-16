@@ -1,12 +1,14 @@
 import re
 from datetime import date, timedelta
 
-from flask import request, current_app, jsonify
+from flask import request, current_app, jsonify,redirect
 from flask_restful import Resource, reqparse
 
 from calendar_data import CalendarData
 from data import db_session
 from data.calendar import CalendarDB
+from help_function import get_calendar_id_by_name, get_student_name_by_id
+
 parser = reqparse.RequestParser()
 parser.add_argument('title')
 parser.add_argument('year')
@@ -27,6 +29,7 @@ parser.add_argument('repetition_value')
 class Task(Resource):
     @staticmethod
     def post(calendar_id):
+        student = get_student_name_by_id(get_calendar_id_by_name(calendar_id))
         args = parser.parse_args()
         title = args["title"].strip()
         startdate = args["date"]
@@ -89,4 +92,4 @@ class Task(Resource):
                 repetition_subtype=repetition_subtype,
                 repetition_value=repetition_value,
             )
-        return jsonify({'success': 'OK'})
+        return redirect('/teacher_calendar/' + student)

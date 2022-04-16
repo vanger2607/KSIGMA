@@ -173,7 +173,13 @@ width: 50%;
     color: #F7F7F7;
     background-color: #A1D360;
 }
-.tasks_table    {background: silver}
+tbody {
+    height: auto;
+    display: inline-block;
+    width: 100%;
+    overflow: auto;
+}
+.tasks_table    {background: silver;}
 .tasks_table td {background: white; color: black}
 .tasks_table td.act {background: black; color: white}
 :active, :hover, :focus {
