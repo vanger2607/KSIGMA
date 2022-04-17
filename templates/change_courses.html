@@ -1,0 +1,123 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+
+<div class="w3-container" id="table">
+    <div id="statusbar" class="">Course was created</div>
+    <label form="classSelect">фильтр по предметам</label>
+    <select class="form-control" name="filter" onchange='new_obj(this)'>
+        {% for object in objects %}
+        {% if object== object_now%}
+        <option value="{{object}}" selected="selected">{{object}}</option>
+        {% else %}
+        <option value={{object}}> {{object}}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    <table class="tasks_table" id="s">
+        <thead>
+        <tr>
+            <th class="table_header">Lesson_name</th>
+        </tr>
+        </thead>
+        <tbody class="q">
+        {% for lesson in lessons%}
+        <tr class="oh">
+            <td data="{{lesson}}" onclick="testFunction(this)">{{lesson}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="w3-container" , id="task">
+    <p></p>
+    <select class="form-control" name="filter" onchange='reload(this)'>
+        {% for cs in courses %}
+        {% if cs == course_now %}
+        <option id="course_name"value="{{cs}}" selected="selected">{{cs}}</option>
+        {% else %}
+        <option value="{{cs}}"> {{cs}}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    <br>
+    <ol id="ol" class="tasks_correct">
+        {% for lesson in lessons_cr %}
+        <li id="{{lesson}}" onclick='remove_it(id)' class="good" >{{lesson}}</li>
+        {% endfor %}
+    </ol>
+    <input class="form-button" type="submit" value="Save" onclick="save()"/>
+</div>
+
+<script>
+function testFunction(elem) {
+    let liFirst = document.createElement('li');
+    liFirst.innerHTML = elem.textContent
+    liFirst.id = elem.textContent
+    var elem_id = elem.textContent
+    liFirst.setAttribute('class', 'good')
+    liFirst.setAttribute('onclick', 'remove_it("'+elem_id+'")');
+  ol.prepend(liFirst);
+}
+
+
+function remove_it(elem_id){document.getElementById(elem_id).remove();}
+
+async function save(){const formData = new FormData();
+var val = document.getElementById('course_name').value;
+var a = Array.from(document.getElementsByClassName("good"));
+var lst = []
+a.forEach(function(element){lst.push(element.textContent);});
+formData.append('array', lst)
+formData.append('name', val)
+if (val.length ==0) {alert("введите название курса");}
+else if (lst.length ==0) {alert("выберите уроки, из которых будет состоять курс");}
+else{
+const response = fetch("{{base_url}}/" + "changing_course", {method: 'POST',
+body: formData})
+.then(function(response) {
+  return response.text()
+}).then(async function(text) {
+  is_okay = text.includes("bad");
+  if (is_okay){alert("все уроки в курсе должны относится к одному предмету");}
+  else {ShowStatusbar();
+await sleep(3 * 1000);
+HideStatusbar();}
+});
+};
+}
+function new_obj(filter_name){lst = fetch("{{base_url}}/help_filter/"+ filter_name.value + "/")
+.then(function(response) {
+  return response.json()
+}).then(function(json){lst = json["lst"];
+lessons = document.querySelectorAll('.oh');
+for(const name of lessons){name.remove();}
+for(const lesson of lst){let liFirst = document.createElement('tr');
+liFirst.setAttribute('class', 'oh')
+liFirst.setAttribute('id', 'kk')
+     $('#s tbody').prepend(liFirst);
+     tb = document.createElement('td');
+     tb.innerHTML = lesson
+     tb.setAttribute("data", lesson)
+     tb.setAttribute("onclick", 'testFunction(this)')
+    tb.data = lesson
+    $('#s tbody > #kk').prepend(tb)
+    document.getElementById("kk").id = "";};})
+}
+function ShowStatusbar() {
+        document.getElementById("statusbar").className = "processing";
+    };
+
+    function HideStatusbar() {
+        document.getElementById("statusbar").className = "";
+    }
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+function reload(filter_name){window.location = "{{base_url}}change_course/"+ filter_name.value + "/";
+}
+
+</script>
+
+{% endblock %}

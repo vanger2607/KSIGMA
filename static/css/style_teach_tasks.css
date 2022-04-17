@@ -62,7 +62,7 @@ body {
 .form-inner {
    padding: 50px;
 }
-.form-inner input, .form-inner textarea {
+.form-inner input, .form-inner .textt{
    display: block;
    width: 100%;
    padding: 0 20px;
@@ -80,7 +80,7 @@ body {
    color: white;
    font-size: 14px;
 }
-.form-inner textarea {
+.form-inner .textt {
    resize: none;
 }
 .form-inner h3 {

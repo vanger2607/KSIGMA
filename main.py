@@ -3,6 +3,7 @@ import smtplib
 from datetime import timedelta
 
 import flask
+import werkzeug
 from flask import current_app, Flask, jsonify, make_response, redirect, \
     render_template, request
 from flask_jwt_simple import JWTManager
@@ -15,13 +16,15 @@ from wtforms import BooleanField, PasswordField, SelectField, StringField, \
 from wtforms.fields import EmailField
 from wtforms.validators import DataRequired
 
+from Errors import Badlesson, BadCourse
 from calendar_data import CalendarData
-from data import db_session, is_teacher_recource, task_resource
+from data import db_session, task_resource, is_teacher_recource
 from data.users import User
 from gregorian_calendar import GregorianCalendar
-from help_function import all_tasks, append_tasks_to_lesson, calendar_name, \
-    get_info_about_task, get_student_id, get_task_name_by_object, \
-    students_for_teacher
+from help_function import all_tasks, creation_lesson, calendar_name, \
+    get_info_about_task, get_student_id, students_for_teacher, is_teacher, get_task_names_by_object, all_lessons, \
+    get_lesson_names_by_object, creation_course, all_courses, get_lessons_by_course, get_lesson_id, \
+    get_lesson_name_by_id, chang_course
 
 my_super_app = Flask(__name__)
 my_super_app.config.from_object("config")
@@ -67,6 +70,11 @@ class LoginForm(FlaskForm):
 
 class LessonForm(FlaskForm):
     text_name = StringField('название урока', validators=[DataRequired()])
+
+
+@my_super_app.errorhandler(werkzeug.exceptions.Forbidden)
+def handle_bad_request(e):
+    return 'This page is only for teachers, ha-ha-ha loser!', 400
 
 
 @my_super_app.route('/')
@@ -138,7 +146,10 @@ def login():
 def logout():
     logout_user()
     res = make_response(redirect('/'))
-    res.set_cookie('is_teacher', request.cookies.get('is_teacher'), max_age=0)
+    is_teacher_cookies = request.cookies.get('is_teacher'),
+    print(is_teacher_cookies)
+    if not (is_teacher_cookies[0] is None):
+        res.set_cookie('is_teacher', request.cookies.get('is_teacher'), max_age=0)
     return res
 
 
@@ -158,52 +169,58 @@ def teacher_cabinet():
 @my_super_app.route('/teacher_calendar/<string:user_name>/')
 @login_required
 def teacher_calendar(user_name):
-    calendar_title = calendar_name(get_student_id(user_name))
-    students = students_for_teacher(current_user.get_id())
-    current_day, current_month, current_year = GregorianCalendar.current_date()
-    month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
-    calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
-                                 current_app.config["WEEK_STARTING_DAY"])
-    try:
-        data = calendar_data.load_calendar(calendar_title)
-    except FileNotFoundError:
-        abort(404)
-    tasks = calendar_data.tasks_from_calendar(current_year, current_month,
-                                              data)
-    tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year,
-                                                             current_month,
-                                                             data, tasks)
-    weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
-    return render_template('calendar_teacher.html',
-                           title='Личный кабинет', calendar_id=calendar_title,
-                           year=current_year,
-                           month=current_month,
-                           month_name=month_name,
-                           current_year=current_year,
-                           current_month=current_month,
-                           current_day=current_day,
-                           month_days=GregorianCalendar.month_days(
-                               current_year, current_month),
-                           base_url=current_app.config["BASE_URL"],
-                           tasks=tasks,
-                           display_view_past_button=current_app.config[
-                               "SHOW_VIEW_PAST_BUTTON"],
-                           weekdays_headers=weekdays_headers,
-                           students=students,
-                           username=user_name)
+    if is_teacher(current_user.get_id()):
+        calendar_title = calendar_name(get_student_id(user_name))
+        students = students_for_teacher(current_user.get_id())
+        current_day, current_month, current_year = GregorianCalendar.current_date()
+        month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
+        calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
+                                     current_app.config["WEEK_STARTING_DAY"])
+        try:
+            data = calendar_data.load_calendar(calendar_title)
+        except FileNotFoundError:
+            abort(404)
+        tasks = calendar_data.tasks_from_calendar(current_year, current_month,
+                                                  data)
+        tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year,
+                                                                 current_month,
+                                                                 data, tasks)
+        weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+        return render_template('calendar_teacher.html',
+                               title='Личный кабинет', calendar_id=calendar_title,
+                               year=current_year,
+                               month=current_month,
+                               month_name=month_name,
+                               current_year=current_year,
+                               current_month=current_month,
+                               current_day=current_day,
+                               month_days=GregorianCalendar.month_days(
+                                   current_year, current_month),
+                               base_url=current_app.config["BASE_URL"],
+                               tasks=tasks,
+                               display_view_past_button=current_app.config[
+                                   "SHOW_VIEW_PAST_BUTTON"],
+                               weekdays_headers=weekdays_headers,
+                               students=students,
+                               username=user_name)
+    else:
+        abort(403)
 
 
 @my_super_app.route('/teacher/tasks', methods=['POST', 'GET'])
 @login_required
 def tasks():
-    if request.method == 'GET':
-        return render_template('teach_create_task.html',
-                               title='Создание задачи')
-    elif request.method == 'POST':
-        print(request.form.get('text'))
-        print(request.form.get('lesson'))
-        print(request.form.get('file'))
-        return redirect('/teacher/check_tasks')
+    if is_teacher(current_user.get_id()):
+        if request.method == 'GET':
+            return render_template('teach_create_task.html',
+                                   title='Создание задачи')
+        elif request.method == 'POST':
+            print(request.form.get('text'))
+            print(request.form.get('lesson'))
+            print(request.form.get('file'))
+            return redirect('/teacher/check_tasks')
+    else:
+        abort(403)
 
 
 @my_super_app.route('/teacher/check_tasks', methods=['POST'])
@@ -258,7 +275,6 @@ def check_tasks():
                     methods=['GET', 'POST'])
 def new_task_action(calendar_id: str, year: int, month: int):
     if flask.request.method == 'GET':
-        print('ok2')
         GregorianCalendar.setfirstweekday(
             current_app.config["WEEK_STARTING_DAY"])
 
@@ -358,26 +374,13 @@ def create_lesson(filter_name):
     form = LessonForm()
     if filter_name == 'None':
         tasks_ = all_tasks()
-
-        if form.validate_on_submit():
-            return render_template('create_lesson.html',
-                                   title='Создание уроков', tasks=tasks_,
-                                   objects=['math', 'russia'],
-                                   base_url=current_app.config["BASE_URL"],
-                                   object_now=filter_name, form=form)
         return (render_template('create_lesson.html', title='Создание уроков',
                                 tasks=tasks_,
                                 objects=['math', 'russia'],
                                 base_url=current_app.config["BASE_URL"],
                                 object_now=filter_name, form=form))
     else:
-        tasks_ = get_task_name_by_object(filter_name)
-        if form.validate_on_submit():
-            return render_template('create_lesson.html',
-                                   title='Создание уроков', tasks=tasks_,
-                                   objects=['math', 'russia'],
-                                   base_url=current_app.config["BASE_URL"],
-                                   object_now=filter_name, form=form)
+        tasks_ = get_task_names_by_object(filter_name)
         return render_template('create_lesson.html', title='Создание уроков',
                                tasks=tasks_,
                                objects=['math', 'russia'],
@@ -389,21 +392,90 @@ def create_lesson(filter_name):
 def view_task(task):
     task_type, questions = get_info_about_task(task)
     questions = [questions]
-    print('qwe')
-    print(task_type)
     return render_template('view_task.html', task_type=task_type,
                            questions=questions)
 
 
-@my_super_app.route('/lesson', methods=['POST', 'DELETE', 'GET'])
+@my_super_app.route('/lesson', methods=['POST'])
 def lesson():
     lst = request.form.get('array').split(',')
-    print(lst)
-    append_tasks_to_lesson(lst)
-
+    name = request.form.get('name')
+    try:
+        creation_lesson(lst, name)
+    except Badlesson:
+        return jsonify({'sucess': 'bad'})
     return jsonify({'succes': 'Ok'})
 
 
+@my_super_app.route('/create_courses/<filter_name>/', methods=["GET", "POST"])
+def create_cour(filter_name):
+    form = LessonForm()
+    if filter_name == 'None':
+        lessons = all_lessons()
+
+        return (render_template('courses.html', title='Создание курсов',
+                                lessons=lessons,
+                                objects=['math', 'russia'],
+                                base_url=current_app.config["BASE_URL"],
+                                object_now=filter_name, form=form))
+    else:
+        lessons = get_lesson_names_by_object(filter_name)
+        print(lessons)
+        return render_template('courses.html', title='Создание курсов',
+                               lessons=lessons,
+                               objects=['math', 'russia'],
+                               base_url=current_app.config["BASE_URL"],
+                               object_now=filter_name, form=form, )
+
+
+@my_super_app.route('/course', methods=['POST'])
+def course():
+    lst = request.form.get('array').split(',')
+    name = request.form.get('name')
+    try:
+        creation_course(lst, name)
+    except BadCourse:
+        return jsonify({'sucess': 'bad'})
+    return jsonify({'succes': 'Ok'})
+
+
+@my_super_app.route('/change_course/<filter_name>/')
+def change_course(filter_name):
+    form = LessonForm()
+    courses = all_courses()
+    print(courses)
+    lessons = all_lessons()
+    if filter_name == 'None':
+
+
+        return (render_template('change_courses.html', title='Создание курсов',
+                                lessons=lessons,
+                                objects=['math', 'russia'],
+                                base_url=current_app.config["BASE_URL"],
+                                course_now=filter_name, form=form, courses=courses))
+    else:
+        lessons_cr = get_lessons_by_course(filter_name)
+        lessons_cr = [get_lesson_name_by_id(i) for i in lessons_cr]
+        print(lessons_cr)
+        return render_template('change_courses.html', title='Создание курсов',
+                               lessons=lessons,
+                               objects=['math', 'russia'],
+                               base_url=current_app.config["BASE_URL"],
+                               course_now=filter_name, form=form, courses=courses, lessons_cr=lessons_cr)
+
+@my_super_app.route('/help_filter/<filter_name>/', methods=['POST'])
+def help_lesson(filter_name):
+    lst = get_lesson_names_by_object(filter_name)
+    return jsonify({'lst': lst})
+@my_super_app.route('/changing_course', methods=['POST'])
+def changing_course():
+    lst = request.form.get('array').split(',')
+    name = request.form.get('name')
+    try:
+        chang_course(lst, name)
+    except BadCourse:
+        return jsonify({'sucess': 'bad'})
+    return jsonify({'succes': 'Ok'})
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     api.add_resource(task_resource.Task, '/<calendar_id>/new_task')
