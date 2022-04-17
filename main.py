@@ -16,13 +16,15 @@ from wtforms import BooleanField, PasswordField, SelectField, StringField, \
 from wtforms.fields import EmailField
 from wtforms.validators import DataRequired
 
+from Errors import Badlesson, BadCourse
 from calendar_data import CalendarData
 from data import db_session, task_resource, is_teacher_recource
 from data.users import User
 from gregorian_calendar import GregorianCalendar
 from help_function import all_tasks, creation_lesson, calendar_name, \
-    get_info_about_task, get_student_id, get_task_name_by_object, \
-    students_for_teacher, is_teacher
+    get_info_about_task, get_student_id, students_for_teacher, is_teacher, get_task_names_by_object, all_lessons, \
+    get_lesson_names_by_object, creation_course, all_courses, get_lessons_by_course, get_lesson_id, \
+    get_lesson_name_by_id, chang_course
 
 my_super_app = Flask(__name__)
 my_super_app.config.from_object("config")
@@ -372,26 +374,13 @@ def create_lesson(filter_name):
     form = LessonForm()
     if filter_name == 'None':
         tasks_ = all_tasks()
-
-        if form.validate_on_submit():
-            return render_template('create_lesson.html',
-                                   title='Создание уроков', tasks=tasks_,
-                                   objects=['math', 'russia'],
-                                   base_url=current_app.config["BASE_URL"],
-                                   object_now=filter_name, form=form)
         return (render_template('create_lesson.html', title='Создание уроков',
                                 tasks=tasks_,
                                 objects=['math', 'russia'],
                                 base_url=current_app.config["BASE_URL"],
                                 object_now=filter_name, form=form))
     else:
-        tasks_ = get_task_name_by_object(filter_name)
-        if form.validate_on_submit():
-            return render_template('create_lesson.html',
-                                   title='Создание уроков', tasks=tasks_,
-                                   objects=['math', 'russia'],
-                                   base_url=current_app.config["BASE_URL"],
-                                   object_now=filter_name, form=form)
+        tasks_ = get_task_names_by_object(filter_name)
         return render_template('create_lesson.html', title='Создание уроков',
                                tasks=tasks_,
                                objects=['math', 'russia'],
@@ -407,14 +396,86 @@ def view_task(task):
                            questions=questions)
 
 
-@my_super_app.route('/lesson', methods=['POST', 'DELETE', 'GET'])
+@my_super_app.route('/lesson', methods=['POST'])
 def lesson():
     lst = request.form.get('array').split(',')
     name = request.form.get('name')
-    creation_lesson(lst, name)
+    try:
+        creation_lesson(lst, name)
+    except Badlesson:
+        return jsonify({'sucess': 'bad'})
     return jsonify({'succes': 'Ok'})
 
 
+@my_super_app.route('/create_courses/<filter_name>/', methods=["GET", "POST"])
+def create_cour(filter_name):
+    form = LessonForm()
+    if filter_name == 'None':
+        lessons = all_lessons()
+
+        return (render_template('courses.html', title='Создание курсов',
+                                lessons=lessons,
+                                objects=['math', 'russia'],
+                                base_url=current_app.config["BASE_URL"],
+                                object_now=filter_name, form=form))
+    else:
+        lessons = get_lesson_names_by_object(filter_name)
+        print(lessons)
+        return render_template('courses.html', title='Создание курсов',
+                               lessons=lessons,
+                               objects=['math', 'russia'],
+                               base_url=current_app.config["BASE_URL"],
+                               object_now=filter_name, form=form, )
+
+
+@my_super_app.route('/course', methods=['POST'])
+def course():
+    lst = request.form.get('array').split(',')
+    name = request.form.get('name')
+    try:
+        creation_course(lst, name)
+    except BadCourse:
+        return jsonify({'sucess': 'bad'})
+    return jsonify({'succes': 'Ok'})
+
+
+@my_super_app.route('/change_course/<filter_name>/')
+def change_course(filter_name):
+    form = LessonForm()
+    courses = all_courses()
+    print(courses)
+    lessons = all_lessons()
+    if filter_name == 'None':
+
+
+        return (render_template('change_courses.html', title='Создание курсов',
+                                lessons=lessons,
+                                objects=['math', 'russia'],
+                                base_url=current_app.config["BASE_URL"],
+                                course_now=filter_name, form=form, courses=courses))
+    else:
+        lessons_cr = get_lessons_by_course(filter_name)
+        lessons_cr = [get_lesson_name_by_id(i) for i in lessons_cr]
+        print(lessons_cr)
+        return render_template('change_courses.html', title='Создание курсов',
+                               lessons=lessons,
+                               objects=['math', 'russia'],
+                               base_url=current_app.config["BASE_URL"],
+                               course_now=filter_name, form=form, courses=courses, lessons_cr=lessons_cr)
+
+@my_super_app.route('/help_filter/<filter_name>/', methods=['POST'])
+def help_lesson(filter_name):
+    lst = get_lesson_names_by_object(filter_name)
+    return jsonify({'lst': lst})
+@my_super_app.route('/changing_course', methods=['POST'])
+def changing_course():
+    lst = request.form.get('array').split(',')
+    name = request.form.get('name')
+    try:
+        chang_course(lst, name)
+    except BadCourse:
+        return jsonify({'sucess': 'bad'})
+    return jsonify({'succes': 'Ok'})
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     api.add_resource(task_resource.Task, '/<calendar_id>/new_task')

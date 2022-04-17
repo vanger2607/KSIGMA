@@ -12,6 +12,6 @@ class Course(Database, SerializerMixin):
                            primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String)
     lessons = sqlalchemy.Column(sqlalchemy.String)
-    type_object = sqlalchemy.Column(sqlalchemy.Integer,
+    object = sqlalchemy.Column(sqlalchemy.Integer,
                                    sqlalchemy.ForeignKey("Object.id"))
-    object = orm.relation('Objects')
+    objects = orm.relation('Objects')

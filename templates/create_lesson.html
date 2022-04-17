@@ -18,7 +18,7 @@
     <table class="tasks_table" id="s">
         <thead>
         <tr>
-            <th>Task_name</th>
+            <th class="table_header">Task_name</th>
         </tr>
         </thead>
         <tbody>
@@ -75,11 +75,18 @@ formData.append('name', val)
 if (val.length ==0) {alert("введите имя урока");}
 else if (lst.length ==0) {alert("выберите задачи, из которых будет состоять урок");}
 else{
-fetch("{{base_url}}/" + "lesson", {method: 'POST',
-body: formData});
-ShowStatusbar();
+const response = fetch("{{base_url}}/" + "lesson", {method: 'POST',
+body: formData})
+.then(function(response) {
+  return response.text()
+}).then(async function(text) {
+  is_okay = text.includes("bad");
+  if (is_okay){alert("все задачи в уроке должны относится к одному предмету");}
+  else {ShowStatusbar();
 await sleep(3 * 1000);
-HideStatusbar();};
+HideStatusbar();}
+});
+};
 
 }
 function reload(filter_name){window.location = "{{base_url}}create_lesson/"+ filter_name.value + "/";
