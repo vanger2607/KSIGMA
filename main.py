@@ -79,7 +79,7 @@ def handle_bad_request(e):
 
 @my_super_app.route('/')
 def start():
-    return render_template('index.html', title='SuperKsigma')
+    return render_template('templates/index.html', title='SuperKsigma')
 
 
 @my_super_app.route('/register', methods=['GET', 'POST'])
