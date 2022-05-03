@@ -1,6 +1,6 @@
 DATA_FOLDER = ""
 USERS_DATA_FOLDER = "users"
-BASE_URL = "http://192.168.1.107:5000/"
+BASE_URL = "superksigma.ru"
 SENDER_EMAIL = "superksigma@yandex.ru"
 PASSWORD_EMAIL = 'Alexor_2023'
 SUBJECTS = ['Maths', 'Russian', 'English']
