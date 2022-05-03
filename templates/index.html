@@ -84,7 +84,7 @@
         <div class="container-fluid">
             <nav class="navbar navbar-expand-lg">
                 <div class="container">
-                    <a href="https://lichess.org/@/vanger2006" class="navbar-brand">
+                    <a href="/" class="navbar-brand">
                         <img src="https://sun9-16.userapi.com/impg/bS_46eHsbbiPBZgdGf4KTElNQ1fA1RCt6ZB2wg/ht8WbWVKRp0.jpg?size=172x154&quality=96&sign=1ffe61f87c527f5294359204215517b7&type=album">
                         <p1 class="right">КСИГМА</p1>
                     </a>
@@ -100,20 +100,17 @@
     </main>
 
     <footer class="footer">
-        {% if current_user.is_authenticated %}
-        <a class="navbar-brand" href="/logout">{{ current_user.name }}</a>
-        {% if request.cookies.get('is_teacher') == 'False' %}
-        <a class="btn btn-primary" href="/cabinet"> Личный кабинет</a>
-        {% else %}
-        <a class="btn btn-primary" href="/teacher_cabinet"> Личный кабинет учителя</a>
-        {% endif %}
-
-        {% else %}
         <p>
-            <a class="btn btn-primary " href="/register">Зарегистрироваться</a>
-
-            <a class="btn btn-success" href="/login">Войти</a>{% endif %}
-        </p></footer>
+        {% if current_user.is_authenticated %}
+            <a class="navbar-brand" href="/logout">{{ current_user.name }}</a>
+            <a class="btn btn-primary" href="/cabinet"> Личный кабинет</a>
+        {% else %}
+            <a class="btn btn-primary " href="/reqister_student">Зарегистрироваться учеником</a>
+            <a class="btn btn-primary " href="/register_teacher">Зарегистрироваться учителем</a>
+            <a class="btn btn-success" href="/login">Войти</a>
+        {% endif %}
+        </p>
+    </footer>
 
 
 </div>

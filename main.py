@@ -1,5 +1,4 @@
 import os
-import smtplib
 from datetime import timedelta
 
 import flask
@@ -12,36 +11,35 @@ from flask_login import current_user, login_required, login_user, LoginManager, 
 from flask_restful import abort, Api
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, PasswordField, SelectField, StringField, \
-    SubmitField, TextAreaField
+    SubmitField
 from wtforms.fields import EmailField
 from wtforms.validators import DataRequired
 
 from Errors import Badlesson, BadCourse
 from calendar_data import CalendarData
 from data import db_session, task_resource, is_teacher_recource
-from data.users import User
+from data.users import User, Student
 from gregorian_calendar import GregorianCalendar
 from help_function import all_tasks, creation_lesson, calendar_name, \
     get_info_about_task, get_student_id, students_for_teacher, is_teacher, get_task_names_by_object, all_lessons, \
-    get_lesson_names_by_object, creation_course, all_courses, get_lessons_by_course, get_lesson_id, \
-    get_lesson_name_by_id, chang_course
+    get_lesson_names_by_object, creation_course, all_courses, get_lessons_by_course, get_lesson_name_by_id, chang_course
 
 my_super_app = Flask(__name__)
 my_super_app.config.from_object("config")
 my_super_app.config['SECRET_KEY'] = '12Wqfgr66ThSd88UI234901_qprjf'
 api = Api(my_super_app)
-db_session.global_init("users.db")
+db_session.global_init("db/main.db")
 login_manager = LoginManager()
 login_manager.init_app(my_super_app)
 
-my_super_app.config['JWT_SECRET_KEY'] = 'hghfehi23jksdnlqQw3244'
-my_super_app.config['JWT_EXPIRES'] = timedelta(hours=45)
-my_super_app.config['JWT_IDENTITY_CLAIM'] = 'user'
-my_super_app.config['JWT_HEADER_NAME'] = 'authorization'
-my_super_app.jwt = JWTManager(my_super_app)
-api = Api(my_super_app, catch_all_404s=True)
-api.add_resource(is_teacher_recource.is_TeacherResource,
-                 '/api/_is_teacher/<int:user_id>')
+# my_super_app.config['JWT_SECRET_KEY'] = 'hghfehi23jksdnlqQw3244'
+# my_super_app.config['JWT_EXPIRES'] = timedelta(hours=45)
+# my_super_app.config['JWT_IDENTITY_CLAIM'] = 'user'
+# my_super_app.config['JWT_HEADER_NAME'] = 'authorization'
+# my_super_app.jwt = JWTManager(my_super_app)
+# api = Api(my_super_app, catch_all_404s=True)
+# api.add_resource(is_teacher_recource.is_TeacherResource,
+#                  '/api/_is_teacher/<int:user_id>')
 
 
 @login_manager.user_loader
@@ -50,15 +48,25 @@ def load_user(user_id):
     return db_sess.query(User).get(user_id)
 
 
-class RegisterForm(FlaskForm):
+class TeacherRegisterForm(FlaskForm):
     email = EmailField('Почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     password_again = PasswordField('Повторите пароль',
                                    validators=[DataRequired()])
-    name = StringField('Имя пользователя', validators=[DataRequired()])
+    name = StringField('Имя', validators=[DataRequired()])
+    surname = StringField('Фамилия', validators=[DataRequired()])
+    submit = SubmitField('Зарегистрироваться')
+
+
+class StudentRegisterForm(FlaskForm):
+    email = EmailField('Почта', validators=[DataRequired()])
+    password = PasswordField('Пароль', validators=[DataRequired()])
+    password_again = PasswordField('Повторите пароль',
+                                   validators=[DataRequired()])
+    name = StringField('Имя', validators=[DataRequired()])
+    surname = StringField('Фамилия', validators=[DataRequired()])
     grade = SelectField('Класс', choices=[5, 6, 7, 8, 9, 10, 11])
-    about = TextAreaField("Немного о себе")
-    submit = SubmitField('Войти/Зарегистрироваться')
+    submit = SubmitField('Зарегистрироваться')
 
 
 class LoginForm(FlaskForm):
@@ -82,44 +90,65 @@ def start():
     return render_template('index.html', title='SuperKsigma')
 
 
-@my_super_app.route('/register', methods=['GET', 'POST'])
-def reqister():
-    form = RegisterForm()
+@my_super_app.route('/reqister_student', methods=['GET', 'POST'])
+def reqister_student():
+    form = StudentRegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
-            return render_template('register.html', title='Регистрация',
+            return render_template('register_student.html', title='Регистрация',
                                    form=form,
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
-            return render_template('register.html', title='Регистрация',
+            return render_template('register_student.html', title='Регистрация',
                                    form=form,
                                    message="Такой пользователь уже есть")
-        user = User(
-            name=form.name.data,
-            email=form.email.data,
-            grade=form.grade.data
-        )
-        try:
-            smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
-            smtpObj.starttls()
-            smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
-            msg = 'Вы зарегистрировались в КСИГМЕ!!! С Вас теперь будут брать ежесуточно налог - 5 рублей'
-            print(form.email.data)
-            smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data,
-                             msg.encode("utf8"))
-            smtpObj.quit()
-        except Exception as e:
-            print(e)
-            return render_template('register.html', title='Регистрация',
-                                   form=form,
-                                   message="с почтой что-то не то")
+        user = User()
+        user.name = form.name.data
+        user.surname = form.surname.data
+        user.email = form.email.data
         user.set_password(form.password.data)
+        #
+        # student = Student()
+        # student.user_id = user.id
+        # student.grade = form.grade.data
+
         db_sess.add(user)
+        # db_sess.add(student)
         db_sess.commit()
 
         return redirect('/login')
-    return render_template('register.html', title='Регистрация', form=form)
+    return render_template('register_student.html', title='Регистрация', form=form)
+
+
+@my_super_app.route('/register_teacher', methods=['GET', 'POST'])
+def register_teacher():
+    form = TeacherRegisterForm()
+    if form.validate_on_submit():
+        if form.password.data != form.password_again.data:
+            return render_template('register_teacher.html', title='Регистрация',
+                                   form=form,
+                                   message="Пароли не совпадают")
+        db_sess = db_session.create_session()
+        if db_sess.query(User).filter(User.email == form.email.data).first():
+            return render_template('register_teacher.html', title='Регистрация',
+                                   form=form,
+                                   message="Такой пользователь уже есть")
+        user = User()
+        user.name = form.name.data
+        user.surname = form.surname.data
+        user.email = form.email.data
+        user.set_password(form.password.data)
+
+        teacher = Student()
+        teacher.user_id = user.id
+
+        db_sess.add(user)
+        db_sess.add(teacher)
+        db_sess.commit()
+
+        return redirect('/login')
+    return render_template('register_teacher.html', title='Регистрация', form=form)
 
 
 @my_super_app.route('/login', methods=['GET', 'POST'])
@@ -447,7 +476,6 @@ def change_course(filter_name):
     lessons = all_lessons()
     if filter_name == 'None':
 
-
         return (render_template('change_courses.html', title='Создание курсов',
                                 lessons=lessons,
                                 objects=['math', 'russia'],
@@ -463,10 +491,13 @@ def change_course(filter_name):
                                base_url=current_app.config["BASE_URL"],
                                course_now=filter_name, form=form, courses=courses, lessons_cr=lessons_cr)
 
+
 @my_super_app.route('/help_filter/<filter_name>/', methods=['POST'])
 def help_lesson(filter_name):
     lst = get_lesson_names_by_object(filter_name)
     return jsonify({'lst': lst})
+
+
 @my_super_app.route('/changing_course', methods=['POST'])
 def changing_course():
     lst = request.form.get('array').split(',')
@@ -476,6 +507,8 @@ def changing_course():
     except BadCourse:
         return jsonify({'sucess': 'bad'})
     return jsonify({'succes': 'Ok'})
+
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     api.add_resource(task_resource.Task, '/<calendar_id>/new_task')
