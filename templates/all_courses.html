@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+
+<div class="w3-container" id="table">
+    <div id="statusbar" class="">Course was created</div>
+    <label class="classSelect">фильтр по предметам</label>
+    <form method="post">
+        <select class="form-control" name="filter" onchange='reload(this)'>
+            {% for object in objects %}
+                {% if object == object_now %}
+                    <option value="{{object.name}}" selected="selected">{{ object.name }}</option>
+                {% else %}
+                    <option value={{object.name}}> {{ object.name }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        <input type="submit" value="Выбрать фильтр">
+    </form>
+    {% if courses %}
+        <table class="tasks_table" id="s">
+            <thead>
+            <tr>
+                <th class="table_header">Название курсов</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for course in courses %}
+            <tr>
+                <td><a href="/course/{{ course.id }}">{{ course.name }}</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <label class="classSelect">Таких курсов у вас ещё нет</label>
+    {% endif %}
+</div>
+
+{% endblock %}

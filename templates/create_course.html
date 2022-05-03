@@ -1,0 +1,16 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+
+<div class="w3-container" id="table">
+    <form method="post">
+        {{ form.hidden_tag() }}
+        {% for field in form %}
+            {{ field }}
+        {% endfor %}
+        <button class="form-button" type="submit">Создать</button>
+    </form>
+</div>
+
+{% endblock %}

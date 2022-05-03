@@ -102,8 +102,12 @@
     <footer class="footer">
         <p>
         {% if current_user.is_authenticated %}
-            <a class="navbar-brand" href="/logout">{{ current_user.name }}</a>
-            <a class="btn btn-primary" href="/cabinet"> Личный кабинет</a>
+            <a class="btn btn-primary" href="/logout">Выход</a>
+            {% if current_user.is_teacher %}
+                <a class="btn btn-primary" href="/teacher_profile"> Личный кабинет</a>
+            {% else %}
+                <a class="btn btn-primary" href="/student_profile"> Личный кабинет</a>
+            {% endif %}
         {% else %}
             <a class="btn btn-primary " href="/reqister_student">Зарегистрироваться учеником</a>
             <a class="btn btn-primary " href="/register_teacher">Зарегистрироваться учителем</a>
@@ -111,8 +115,6 @@
         {% endif %}
         </p>
     </footer>
-
-
 </div>
 </body>
 </html>

@@ -3,116 +3,33 @@
 {% block content %}
 
 
-<div class="w3-container" id="table">
-    <div id="statusbar" class="">Lesson was created</div>
-    <label form="classSelect">фильтр по предметам</label>
-    <select class="form-control" name="filter" onchange='reload(this)'>
-        {% for object in objects %}
-        {% if object== object_now%}
-        <option value="{{object}}" selected="selected">{{object}}</option>
-        {% else %}
-        <option value={{object}}> {{object}}</option>
+<div class="w6-container">
+    <form method="post">
+        {{ form.hidden_tag() }}
+        {% for field in form %}
+            {{ field }}
+        {% endfor %}
+        {% if error %}
+            <h2> {{ error }} </h2>
         {% endif %}
-        {% endfor %}
-    </select>
-    <table class="tasks_table" id="s">
-        <thead>
-        <tr>
-            <th class="table_header">Task_name</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for task in tasks%}
-        <tr>
-            <td data="{{task}}" onclick="handlerClick(this)">{{task}}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th class="table_header">Вопрос задания</th>
+                    <th class="table_header">Правильный ответ</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for num in range(10) %}
+                <tr>
+                    <td class="table_header"><input type="text" size="40" id="task_{{ num }}" name="task_{{ num }}" ></td>
+                    <td class="table_header"><input type="text" size="40" id="answer_{{ num }}" name="answer_{{ num }}" ></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <button class="form-button" type="submit">Создать</button>
+    </form>
 </div>
-<div class="w3-container" , id="task">
-    <p></p>
-
-    {{form.text_name(class="name", id="lesson_name", placeholder="название урока")}}
-    {% for error in form.text_name.errors %}
-    <p class="alert alert-danger" role="alert">
-        {{ error }}
-    </p>
-    {% endfor %}
-
-
-    <ol id="ol" class="tasks_correct">
-
-    </ol>
-    <input class="form-button" type="submit" value="Save" onclick="save()"/>
-</div>
-
-<script>
-function testFunction(elem) {
-    timerId = clearTimeout(timerId);
-    let liFirst = document.createElement('li');
-    liFirst.innerHTML = elem.textContent
-    liFirst.id = elem.textContent
-    var elem_id = elem.textContent
-    liFirst.setAttribute('class', 'good')
-    liFirst.setAttribute('onclick', 'remove_it("'+elem_id+'")');
-  ol.prepend(liFirst);
-}
-function r(elem)
-{timerId = clearTimeout(timerId);
-var win=window.open("{{base_url}}/view_task/" + elem.textContent + "/");
-}
-
-function remove_it(elem_id){document.getElementById(elem_id).remove();}
-
-async function save(){const formData = new FormData();
-var val = document.getElementById('lesson_name').value;
-var a = Array.from(document.getElementsByClassName("good"));
-var lst = []
-a.forEach(function(element){lst.push(element.textContent);});
-formData.append('array', lst)
-formData.append('name', val)
-if (val.length ==0) {alert("введите имя урока");}
-else if (lst.length ==0) {alert("выберите задачи, из которых будет состоять урок");}
-else{
-const response = fetch("{{base_url}}/" + "lesson", {method: 'POST',
-body: formData})
-.then(function(response) {
-  return response.text()
-}).then(async function(text) {
-  is_okay = text.includes("bad");
-  if (is_okay){alert("все задачи в уроке должны относится к одному предмету");}
-  else {ShowStatusbar();
-await sleep(3 * 1000);
-HideStatusbar();}
-});
-};
-
-}
-function reload(filter_name){window.location = "{{base_url}}create_lesson/"+ filter_name.value + "/";
-}
-function ShowStatusbar() {
-        document.getElementById("statusbar").className = "processing";
-    };
-
-    function HideStatusbar() {
-        document.getElementById("statusbar").className = "";
-    }
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-let timerId = null;
-function handlerClick(elem) {
-  if (!timerId) {
-    timerId = setTimeout(() => {
-      r(elem)
-    }, 200);
-  } else {
-    testFunction(elem)
-  }
-
-}
-
-</script>
 
 {% endblock %}

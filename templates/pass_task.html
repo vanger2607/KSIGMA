@@ -1,0 +1,21 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2> {{ lesson.name }} </h2>
+<h2> {{ lesson.object.name }} </h2>
+<form method="post">
+    {% if task_type != "chose"%}
+        {% for task in lesson.tasks %}
+            <p>{{ task.question }}</p>
+            <p><input type="text" id="task_{{ task.id }}" name="task_{{ task.id }}" autocomplete="off"></p>
+        {% endfor %}
+    {% else %}
+    <!--TODO-->
+        {% for question in questions %}
+            <p>{{question}}</p>
+            <p><input type="text"></p>
+        {% endfor %}
+    {% endif %}
+<input type="submit">
+</form>
+{% endblock %}

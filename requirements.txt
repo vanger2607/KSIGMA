@@ -5,7 +5,6 @@ charset-normalizer==2.0.12
 click==8.0.4
 colorama==0.4.4
 Flask==2.0.3
-Flask-JWT-Simple==0.0.3
 Flask-Login==0.5.0
 flask-ngrok==0.0.25
 Flask-RESTful==0.3.9

@@ -2,7 +2,16 @@ import sqlalchemy
 from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
 
-from .db_session import Database
+from data.db_session import Database
+
+courses_to_users = sqlalchemy.Table(
+    'courses_to_users',
+    Database.metadata,
+    sqlalchemy.Column('users', sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey('users.id')),
+    sqlalchemy.Column('courses', sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey('courses.id'))
+)
 
 
 class Course(Database, SerializerMixin):
@@ -11,7 +20,9 @@ class Course(Database, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String)
-    lessons = sqlalchemy.Column(sqlalchemy.String)
-    object = sqlalchemy.Column(sqlalchemy.Integer,
-                                   sqlalchemy.ForeignKey("Object.id"))
-    objects = orm.relation('Objects')
+
+    lessons = orm.relation("Lesson", back_populates='course')
+
+    object_id = sqlalchemy.Column(sqlalchemy.Integer,
+                                  sqlalchemy.ForeignKey("Object.id"))
+    object = orm.relation('Objects')
