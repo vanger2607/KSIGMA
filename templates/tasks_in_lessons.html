@@ -1,0 +1,137 @@
+{% extends "index.html" %}
+{% block content %}
+<style>
+#c {
+  position: relative;
+  height: 256px;
+  width: 456px;
+  overflow-x: hidden
+  overflow: auto;
+
+}
+.w3-container{
+
+margin-top: 2px;
+position: absolute;
+margin-bottom: 2px;
+width: 100%;
+overflow-x: hide;
+}
+.sidenav {
+    width: 230px;
+    height: 60%;
+    position: fixed;
+    z-index: 1;
+    top: 25%;
+    left: 10px;
+    background: #eee;
+    overflow: auto;
+    padding: 8px 0;
+}
+
+.sidenav a {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #2196F3;
+    display: block;
+}
+
+.sidenav a:hover {
+    color: #064579;
+}
+
+.main {
+    margin-left: 140px; /* Same width as the sidebar + left position in px */
+    font-size: 28px; /* Increased text to enable scrolling */
+    padding: 0px 10px;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
+</style>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+</head>
+<script>UTF8 = {
+    encode: function(s){
+        for(var c, i = -1, l = (s = s.split("")).length, o = String.fromCharCode; ++i < l;
+            s[i] = (c = s[i].charCodeAt(0)) >= 127 ? o(0xc0 | (c >>> 6)) + o(0x80 | (c & 0x3f)) : s[i]
+        );
+        return s.join("");
+    },
+    decode: function(s){
+        for(var a, b, i = -1, l = (s = s.split("")).length, o = String.fromCharCode, c = "charCodeAt"; ++i < l;
+            ((a = s[i][c](0)) & 0x80) &&
+            (s[i] = (a & 0xfc) == 0xc0 && ((b = s[i + 1][c](0)) & 0xc0) == 0x80 ?
+            o(((a & 0x03) << 6) + (b & 0x3f)) : o(128), s[++i] = "")
+        );
+        return s.join("");
+    }
+}; function get_task(){fetch("{{base_url}}/" + "info_task/" + "{{tasks[0]}}/",
+              {
+                method: "post",
+                credentials: "include"
+              }).then(function (response) {
+    response.json().then(function (json) {
+
+      alert(json[0])
+      alert(json[1])
+      alert(json[2])
+      alert(json[3])
+      alert(json[4])
+      if (json[4]){alert('good')}
+      else {name = json[0];
+      question = json[1];
+      type=json[2];
+      answers = json[3];
+      window.location = "/tasks_in/{{ lesson }}/view?task_name=" + name + "questions=" + question}
+    })
+  })}
+function get_name(task_id){fetch("{{base_url}}/" + "task_name/" + task_id + "/",
+              {
+                method: "post",
+                credentials: "include"
+              }).then(function(response) {return response.text()
+}).then(function(text) {element = document.getElementById(task_id); element.innerHTML = UTF8.decode(text);})}</script>
+
+<div class="sidenav">
+{% for task in tasks %}
+<a href="#" class="gradient-button"  onclick="get_task()" id="{{task}}"> <script>get_name({{task}})</script></a>
+{% endfor %}
+        </div>
+<div id="c" class="container">
+    <div class="w3-container">
+        название задачи: {{task_name}}
+        <br>
+        урок: {{lesson_name}}
+        <br>
+        {% if task_type == "open" %}
+        {% for question in questions %}
+        <div class="question">{{question}}</div>
+        <input type="text">
+        {%endfor%}
+        {% elif task_type == "radio-buttons" %}
+        <div class="question">{{questions[0]}}</div>
+        {% for variation in variations_of_answers %}
+        <input class="form-check-input" type="radio" value="{{variation}}" name="answers">
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {% elif task_type == "check-boxes"%}
+            {% for variation in variations_of_answers %}
+        <input class="form-check-input" type="checkbox" value="{{variation}}" name="answerss">
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {%endif%}
+    </div>
+</div>
+{% endblock %}

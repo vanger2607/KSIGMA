@@ -1,6 +1,11 @@
-import os
+import json
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.header import Header
 import smtplib
 from datetime import timedelta
+from urllib.parse import unquote
 
 import flask
 import werkzeug
@@ -9,39 +14,43 @@ from flask import current_app, Flask, jsonify, make_response, redirect, \
 from flask_jwt_simple import JWTManager
 from flask_login import current_user, login_required, login_user, LoginManager, \
     logout_user
-from flask_restful import abort, Api
+from flask_restful import abort, Api, reqparse
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, PasswordField, SelectField, StringField, \
     SubmitField, TextAreaField
 from wtforms.fields import EmailField
 from wtforms.validators import DataRequired
 
+import config
 from Errors import Badlesson, BadCourse
 from calendar_data import CalendarData
-from data import db_session, task_resource, is_teacher_recource
+from data import db_session, task_resource, is_teacher_recource, problem_resource, save_problem_resource, \
+    task_name_resource
+from data.calendar import CalendarDB
 from data.users import User
 from gregorian_calendar import GregorianCalendar
 from help_function import all_tasks, creation_lesson, calendar_name, \
     get_info_about_task, get_student_id, students_for_teacher, is_teacher, get_task_names_by_object, all_lessons, \
-    get_lesson_names_by_object, creation_course, all_courses, get_lessons_by_course, get_lesson_id, \
-    get_lesson_name_by_id, chang_course
+    get_lesson_names_by_object, creation_course, all_courses, get_lessons_by_course, get_lesson_name_by_id, \
+    chang_course, get_course_by_subject, get_all_task_from_lesson
 
-my_super_app = Flask(__name__)
-my_super_app.config.from_object("config")
-my_super_app.config['SECRET_KEY'] = '12Wqfgr66ThSd88UI234901_qprjf'
-api = Api(my_super_app)
-db_session.global_init("users.db")
+application = Flask(__name__)
+application.config.from_object("config")
+application.config['SECRET_KEY'] = '12Wqfgr66ThSd88UI234901_qprjf'
+api = Api(application)
+db_session.global_init("Site.db")
 login_manager = LoginManager()
-login_manager.init_app(my_super_app)
+login_manager.init_app(application)
 
-my_super_app.config['JWT_SECRET_KEY'] = 'hghfehi23jksdnlqQw3244'
-my_super_app.config['JWT_EXPIRES'] = timedelta(hours=45)
-my_super_app.config['JWT_IDENTITY_CLAIM'] = 'user'
-my_super_app.config['JWT_HEADER_NAME'] = 'authorization'
-my_super_app.jwt = JWTManager(my_super_app)
-api = Api(my_super_app, catch_all_404s=True)
+application.config['JWT_SECRET_KEY'] = 'hghfehi23jksdnlqQw3244'
+application.config['JWT_EXPIRES'] = timedelta(hours=45)
+application.config['JWT_IDENTITY_CLAIM'] = 'user'
+application.config['JWT_HEADER_NAME'] = 'authorization'
+application.jwt = JWTManager(application)
+api = Api(application, catch_all_404s=True)
 api.add_resource(is_teacher_recource.is_TeacherResource,
                  '/api/_is_teacher/<int:user_id>')
+
 
 
 @login_manager.user_loader
@@ -72,17 +81,19 @@ class LessonForm(FlaskForm):
     text_name = StringField('название урока', validators=[DataRequired()])
 
 
-@my_super_app.errorhandler(werkzeug.exceptions.Forbidden)
+@application.errorhandler(werkzeug.exceptions.Forbidden)
 def handle_bad_request(e):
     return 'This page is only for teachers, ha-ha-ha loser!', 400
 
 
-@my_super_app.route('/')
+
+
+@application.route('/')
 def start():
     return render_template('index.html', title='SuperKsigma')
 
 
-@my_super_app.route('/register', methods=['GET', 'POST'])
+@application.route('/register', methods=['GET', 'POST'])
 def reqister():
     form = RegisterForm()
     if form.validate_on_submit():
@@ -100,29 +111,58 @@ def reqister():
             email=form.email.data,
             grade=form.grade.data
         )
+        user.set_password(form.password.data)
+        db_sess.add(user)
+        with open(form.name.data + '.json', 'w') as f:
+            data = {'tasks': {'normal': {}, "repetition": [], "hidden_repetition": {}}}
+            new_json = json.dump(data, f, indent=4, ensure_ascii=False)
+        db_sess.commit()
+        user = db_sess.query(User).filter(
+            User.email == form.email.data).first()
+        student_id = user.id
+        calendar = CalendarDB(student_id=student_id, calendar_name=form.name.data + '.json')
+        db_sess = db_session.create_session()
+        db_sess.add(calendar)
+        db_sess.commit()
         try:
-            smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
-            smtpObj.starttls()
-            smtpObj.login('ax.ksigma@gmail.com', 'Alexor_2022')
-            msg = 'Вы зарегистрировались в КСИГМЕ!!! С Вас теперь будут брать ежесуточно налог - 5 рублей'
+            my_html = f"""
+             <html>
+               <body>
+                 <p>Уважаемый {form.email.data}! Вы зарегистрировались в KSIGMA!  <i>немного о нас: наш сайт создан для помощи в обучении <i>
+                 он предназначен для репетиторов и их учеников, таких как {form.name.data}.
+                 Мы очень рады, что сам {form.name.data} зашел на наш сайт и надеемся, что он Вам понравится.<br>
+                 Мы заметили,  Вы учитесь в {form.grade.data} классе. Так что, возможно {form.name.data}у/е
+                  будет интересна эта <strong> информация </strong>:
+                    <a href="https://clck.ru/ghaFp"> репетитор по математике для подготовки к  огэ </a>
+                    Хорошего дня {form.email.data}
+                 </p>
+               </body>
+             </html>
+             """
+            subject = 'регистрация в ксигме'
+            msg = MIMEMultipart("alternative")
+            msg['From'] = 'superksigma@yandex.ru'
+            msg['Subject'] = Header(subject, 'utf-8')
+            msg['To'] = Header(form.email.data, 'utf-8')
+            part2 = MIMEText(my_html, "html")
+            msg.attach(part2)
             print(form.email.data)
-            smtpObj.sendmail("ax.ksigma@gmail.com", form.email.data,
-                             msg.encode("utf8"))
-            smtpObj.quit()
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL("smtp.yandex.ru", 465, context=context) as server:
+                server.login(config.SENDER_EMAIL, config.PASSWORD_EMAIL)
+                server.sendmail(
+                    config.SENDER_EMAIL, form.email.data, msg.as_string()
+                )
         except Exception as e:
             print(e)
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="с почтой что-то не то")
-        user.set_password(form.password.data)
-        db_sess.add(user)
-        db_sess.commit()
-
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
 
 
-@my_super_app.route('/login', methods=['GET', 'POST'])
+@application.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -141,7 +181,7 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
-@my_super_app.route('/logout')
+@application.route('/logout')
 @login_required
 def logout():
     logout_user()
@@ -153,20 +193,20 @@ def logout():
     return res
 
 
-@my_super_app.route('/cabinet')
+@application.route('/cabinet')
 @login_required
 def cabinet():
     return render_template('cabinet.html')
 
 
-@my_super_app.route('/teacher_cabinet')
+@application.route('/teacher_cabinet')
 @login_required
 def teacher_cabinet():
     return render_template('teacher_cabinet.html',
                            title='Личный кабинет')
 
 
-@my_super_app.route('/teacher_calendar/<string:user_name>/')
+@application.route('/teacher_calendar/<string:user_name>/')
 @login_required
 def teacher_calendar(user_name):
     if is_teacher(current_user.get_id()):
@@ -207,72 +247,82 @@ def teacher_calendar(user_name):
         abort(403)
 
 
-@my_super_app.route('/teacher/tasks', methods=['POST', 'GET'])
+@application.route('/teacher/tasks', methods=['POST', 'GET'])
 @login_required
 def tasks():
     if is_teacher(current_user.get_id()):
         if request.method == 'GET':
             return render_template('teach_create_task.html',
-                                   title='Создание задачи')
-        elif request.method == 'POST':
-            print(request.form.get('text'))
-            print(request.form.get('lesson'))
-            print(request.form.get('file'))
-            return redirect('/teacher/check_tasks')
+                                   title='Создание задачи', subjects=config.SUBJECTS)
     else:
         abort(403)
 
 
-@my_super_app.route('/teacher/check_tasks', methods=['POST'])
+@application.route('/teacher/check_tasks', methods=['POST'])
 @login_required
 def check_tasks():
-    TEMPLATE = 'teach_check.html'
-    files = request.files['file'].read().decode('utf-8-sig')
-    files_s = [i.strip() for i in files.split('\n')]
-    file = {}
-    for i in files_s:
-        if i:
-            file[i.split(':')[0]] = [j.strip() for j in
-                                     i.split(':')[1].split('|')]
-    file_lines = []
-    error = None
-    if file['Type'][0] == 'close':
-        for i in range(len(file['Questions'])):
-            if i == len(file['Answers']):
-                file_lines = []
-                error = 'Ошибка, ответов меньше чем вопросов'
-                break
+    try:
+        parser = reqparse.RequestParser()
+        parser.add_argument('file')
+        parser.add_argument('task_name')
+        parser.add_argument('lesson_name')
+        args = parser.parse_args()
+        files_s = args["file"]
+        task_name = args['task_name']
+        lesson_name = args['lesson_name']
+        print(files_s)
+        files_s = files_s.split('/')
+        file = {}
+        for i in files_s:
+            file[i.split(':')[0].strip().lower()] = i.split(':')[1].strip()
+        print(file)
+        if 'variations_of_answers' in file and len(file['answers']) > 1:
+            task_type = 'check-boxes'
+            if ';' not in file['questions']:
+                questions = [file['questions']]
             else:
-                file_lines.append(
-                    file['Questions'][i] + ': ' + file['Answers'][i] + '\n')
-        context = {'title': 'Проверка задачи',
-                   'file_lines': file_lines,
-                   'error': error
-                   }
-        return render_template(TEMPLATE, **context)
-    elif file['Type'][0] == 'open':
-        for i in range(len(file['Questions'])):
-            if i == len(file['Variations_of_answers']):
-                file_lines = []
-                error = 'Ошибка, ответов меньше чем вопросов'
-                break
+                questions = file['questions'].split('; ')
+            variations_of_answers = file['variations_of_answers'].split(';')
+            answers = file['answers'].split('; ')
+            return render_template('teach_check.html', task_type=task_type, questions=questions,
+                                   variations_of_answers=variations_of_answers, task_name=task_name,
+                                   lesson_name=lesson_name, answers=answers)
+        elif 'variations_of_answers' in file and len(file['answers']) == 1:
+            task_type = 'radio-buttons'
+            if ';' not in file['questions']:
+                questions = [file['questions']]
             else:
-                file_lines.append({'question': file['Questions'][i] + '\n',
-                                   'answers': [i + '\n' for i in
-                                               file['Variations_of_answers'][
-                                                   i].split(', ')]
-                                   })
+                questions = file['questions'].split('; ')
+            answers = file['answers']
+            answers = answers.split('; ')
+            variations_of_answers = file['variations_of_answers'].split('; ')
+            print(variations_of_answers)
+            return render_template('teach_check.html', task_type=task_type, questions=questions,
+                                   variations_of_answers=variations_of_answers, task_name=task_name,
+                                   lesson_name=lesson_name, answers=answers)
+        else:
+            task_type = 'open'
+            if ';' not in file['questions']:
+                questions = [file['questions']]
+            else:
+                questions = file['questions'].split('; ')
+            print(questions)
+            answers = file['answers']
+            if len(answers) >= 4:
+                answers = answers.split('; ')
+            return render_template('teach_check.html', task_type=task_type, questions=questions, task_name=task_name,
+                                   lesson_name=lesson_name, answers=answers, variations_of_answers='0')
 
-        context = {'title': 'Проверка задачи',
-                   'file_lines': file_lines,
-                   'check_box': True,
-                   'error': error
-                   }
-        return render_template(TEMPLATE, **context)
-
-
-@my_super_app.route('/<calendar_id>/<year>/<month>/new_task',
-                    methods=['GET', 'POST'])
+    except KeyError:
+        print('ok')
+        return render_template('teach_create_task.html',
+                               title='Создание задачи', subjects=config.SUBJECTS, messages='Неверные данные в файле')
+    except IndexError:
+        print('ok1')
+        return render_template('teach_create_task.html',
+                               title='Создание задачи', subjects=config.SUBJECTS, messages='Неверные данные в файле')
+@application.route('/<calendar_id>/<year>/<month>/new_task',
+                   methods=['GET', 'POST'])
 def new_task_action(calendar_id: str, year: int, month: int):
     if flask.request.method == 'GET':
         GregorianCalendar.setfirstweekday(
@@ -319,8 +369,8 @@ def new_task_action(calendar_id: str, year: int, month: int):
         )
 
 
-@my_super_app.route('/<calendar_id>/<year>/<month>/<day>/<task_id>/',
-                    methods=['POST', 'DELETE', 'GET'])
+@application.route('/<calendar_id>/<year>/<month>/<day>/<task_id>/',
+                   methods=['POST', 'DELETE', 'GET'])
 def delete_task(calendar_id, year, month, day, task_id):
     print('ok')
     calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
@@ -335,7 +385,7 @@ def delete_task(calendar_id, year, month, day, task_id):
     return jsonify({'success': 'OK'})
 
 
-@my_super_app.route('/calendar_student')
+@application.route('/calendar_student')
 def student_calendar():
     calendar_title = calendar_name(current_user.id)
     current_day, current_month, current_year = GregorianCalendar.current_date()
@@ -369,7 +419,7 @@ def student_calendar():
                            weekdays_headers=weekdays_headers)
 
 
-@my_super_app.route('/create_lesson/<filter_name>/', methods=["GET", "POST"])
+@application.route('/create_lesson/<filter_name>/', methods=["GET", "POST"])
 def create_lesson(filter_name):
     form = LessonForm()
     if filter_name == 'None':
@@ -388,7 +438,7 @@ def create_lesson(filter_name):
                                object_now=filter_name, form=form)
 
 
-@my_super_app.route('/view_task/<task>/', methods=['POST', 'DELETE', 'GET'])
+@application.route('/view_task/<task>/', methods=['POST', 'DELETE', 'GET'])
 def view_task(task):
     task_type, questions = get_info_about_task(task)
     questions = [questions]
@@ -396,7 +446,7 @@ def view_task(task):
                            questions=questions)
 
 
-@my_super_app.route('/lesson', methods=['POST'])
+@application.route('/lesson', methods=['POST'])
 def lesson():
     lst = request.form.get('array').split(',')
     name = request.form.get('name')
@@ -407,7 +457,7 @@ def lesson():
     return jsonify({'succes': 'Ok'})
 
 
-@my_super_app.route('/create_courses/<filter_name>/', methods=["GET", "POST"])
+@application.route('/create_courses/<filter_name>/', methods=["GET", "POST"])
 def create_cour(filter_name):
     form = LessonForm()
     if filter_name == 'None':
@@ -428,7 +478,7 @@ def create_cour(filter_name):
                                object_now=filter_name, form=form, )
 
 
-@my_super_app.route('/course', methods=['POST'])
+@application.route('/course', methods=['POST'])
 def course():
     lst = request.form.get('array').split(',')
     name = request.form.get('name')
@@ -439,14 +489,13 @@ def course():
     return jsonify({'succes': 'Ok'})
 
 
-@my_super_app.route('/change_course/<filter_name>/')
+@application.route('/change_course/<filter_name>/')
 def change_course(filter_name):
     form = LessonForm()
     courses = all_courses()
     print(courses)
     lessons = all_lessons()
     if filter_name == 'None':
-
 
         return (render_template('change_courses.html', title='Создание курсов',
                                 lessons=lessons,
@@ -463,11 +512,14 @@ def change_course(filter_name):
                                base_url=current_app.config["BASE_URL"],
                                course_now=filter_name, form=form, courses=courses, lessons_cr=lessons_cr)
 
-@my_super_app.route('/help_filter/<filter_name>/', methods=['POST'])
+
+@application.route('/help_filter/<filter_name>/', methods=['POST', 'GET'])
 def help_lesson(filter_name):
     lst = get_lesson_names_by_object(filter_name)
     return jsonify({'lst': lst})
-@my_super_app.route('/changing_course', methods=['POST'])
+
+
+@application.route('/changing_course', methods=['POST'])
 def changing_course():
     lst = request.form.get('array').split(',')
     name = request.form.get('name')
@@ -476,7 +528,43 @@ def changing_course():
     except BadCourse:
         return jsonify({'sucess': 'bad'})
     return jsonify({'succes': 'Ok'})
+
+
+@application.route('/course_student')
+def course_from_student():
+    return render_template('courses_student.html', title='курсы КСИГМЫ', subjects=config.SUBJECTS)
+
+
+@application.route('/course_student/<subject>/')
+def course_in(subject):
+    courses = get_course_by_subject(subject)
+    return render_template('courses_in.html', title='курсы КСИГМЫ', courses=courses)
+
+
+@application.route('/course_student_lessons/<course>/')
+def course_lessons_student(course):
+    try:
+        lessons = get_lessons_by_course(course)
+        lessons = [get_lesson_name_by_id(i) for i in lessons]
+    except TypeError:
+        course = unquote(course)
+        lessons = get_lessons_by_course(course)
+        lessons = [get_lesson_name_by_id(i) for i in lessons]
+    return render_template('lessons_in_courses_student.html', title='ДОМАШКА', lessons=lessons)
+
+
+@application.route('/tasks_in/<lesson>/view')
+def view_tasks(lesson):
+    tasks = get_all_task_from_lesson(lesson)
+    return render_template('tasks_in_lessons.html', title='ЗАДАЧИ', lesson=lesson,
+                           tasks=tasks, base_url=current_app.config["BASE_URL"])
+
+
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
     api.add_resource(task_resource.Task, '/<calendar_id>/new_task')
-    my_super_app.run(host='0.0.0.0', port=port)
+    api.add_resource(problem_resource.Problem, '/info_task/<task_id>/')
+    api.add_resource(save_problem_resource.SaveProblem,
+                     '/save_problem/<task_type>/')
+    api.add_resource(task_name_resource.NameOfTask,
+                     '/task_name/<task_id>/')
+    application.run(host='0.0.0.0')

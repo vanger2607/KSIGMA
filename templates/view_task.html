@@ -1,10 +1,28 @@
 {% extends "index.html" %}
 
 {% block content %}
-{% if task_type == "close"%}
-    {% for question in questions %}
-    <p>{{question}}</p>
-    <p><input type="text"></p>
-    {% endfor %}
-    {% endif %}
+{% if task_type == "open" %}
+        {% for question in questions %}
+        <div class="question">{{question}}</div>
+        <input type="text">
+        {%endfor%}
+        {% elif task_type == "radio-buttons" %}
+        <div class="question">{{questions[0]}}</div>
+        {% for variation in variations_of_answers %}
+        <input class="form-check-input" type="radio" value="{{variation}}" name="answers">
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {% elif task_type == "check-boxes"%}
+            {% for variation in variations_of_answers %}
+        <input class="form-check-input" type="checkbox" value="{{variation}}" name="answerss">
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {%endif%}
+
 {% endblock %}

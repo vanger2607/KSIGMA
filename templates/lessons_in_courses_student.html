@@ -1,0 +1,6 @@
+{% extends "index.html" %}
+{% block content %}
+{% for lesson in lessons%}
+<a href="{{base_url}}/tasks_in/{{lesson}}/view" class="gradient-button"> {{lesson}}</a>
+{% endfor %}
+{% endblock %}

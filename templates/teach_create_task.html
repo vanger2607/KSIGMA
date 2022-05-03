@@ -1,36 +1,82 @@
-<!DOCTYPE html>
 {% extends "index.html" %}
 
 {% block content %}
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
-          integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
-          crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ url_for("static", filename="style_teach_tasks.css") }}">
-</head>
-<body>
+
+
 <h1 align="center">Создание задачи</h1>
 <div>
-    <form class="decor" method="post" action="{{base_url}}/teacher/check_tasks" enctype="multipart/form-data">
         <div class="form-left-decoration"></div>
         <div class="form-right-decoration"></div>
         <div class="circle"></div>
         <div class="form-inner">
             <h3>Заполните поля</h3>
             <input type="text" class="form-control" id="task_name" placeholder="Название задачи" name="text" required>
-            <input type="text" class="form-control" id="lesson_name" placeholder="Название предмета" name="lesson" required>
+             <select class="form-control" name="название предмета" id="lesson_name">
+        {% for subject in subjects %}
+                 <option value={{subject}}> {{subject}}</option>
+                 {% endfor %}
+             </select>
             <div class="form-group">
                 <h3>Загрузите файл задачи</h3>
-                <input type="file" class="form-control-file" id="file_task" name="file" required>
+                <input type="file" class="form-control-file" accept=".docx" id="file_task" name="file" required, onchange='openFile(event)'>
             </div>
-            <input type="submit" value="Готово">
+            <input type="submit" value="Готово", onclick="go_next()">
+            {{messages}}
         </div>
-    </form>
+
 </div>
-</body>
-</html>
+<script src="build/docxgen.js"></script>
+<script src="vendor/FileSaver.min.js"></script>
+<script src="vendor/jszip-utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.1.9/docxtemplater.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.6.1/jszip.js"></script>
+<script>
+var text = ''
+var openFile = function(event) {
+  var input = event.target;
+  var reader = new FileReader();
+  reader.onload = function() {
+    var zip = new JSZip(reader.result);
+    var doc = new window.docxtemplater().loadZip(zip);
+    text = doc.getFullText();
+    return text;
+  };
+  reader.readAsBinaryString(input.files[0]);
+};
+function go_next(){const formData = new FormData();
+formData.append('file', text)
+var task_name = document.getElementById('task_name').value;
+var lesson_name = document.getElementById('lesson_name').value;
+formData.append('task_name', task_name)
+formData.append('lesson_name', lesson_name)
+post("{{base_url}}/" + "teacher/check_tasks", {"file": text,
+"task_name": task_name, "lesson_name": lesson_name})};
+function post(path, params, method='post') {
+
+  // The rest of this code assumes you are not using a library.
+  // It can be made less verbose if you use one.
+  const form = document.createElement('form');
+  form.method = method;
+  form.action = path;
+
+  for (const key in params) {
+    if (params.hasOwnProperty(key)) {
+      const hiddenField = document.createElement('input');
+      hiddenField.type = 'hidden';
+      hiddenField.name = key;
+      hiddenField.value = params[key];
+
+      form.appendChild(hiddenField);
+    }
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+<script>document.onreadystatechange = function(){
+   if(document.readyState === 'complete'){
+     if('{{messages}}'){alert('{{messages}}')}
+   }
+}</script>
 {% endblock %}

@@ -1,12 +1,10 @@
 import re
 from datetime import date, timedelta
 
-from flask import request, current_app, jsonify,redirect
+from flask import current_app, redirect
 from flask_restful import Resource, reqparse
 
 from calendar_data import CalendarData
-from data import db_session
-from data.calendar import CalendarDB
 from help_function import get_calendar_id_by_name, get_student_name_by_id
 
 parser = reqparse.RequestParser()
@@ -26,6 +24,8 @@ parser.add_argument('repeats', default='0')
 parser.add_argument('repetition_type')
 parser.add_argument('repetition_subtype')
 parser.add_argument('repetition_value')
+
+
 class Task(Resource):
     @staticmethod
     def post(calendar_id):

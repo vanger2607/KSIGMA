@@ -14,5 +14,6 @@ class SuperTasks(Database, SerializerMixin):
                                sqlalchemy.ForeignKey("Object.id"))
     type = sqlalchemy.Column(sqlalchemy.String)
     question = sqlalchemy.Column(sqlalchemy.String)
+    variations_of_answers =sqlalchemy.Column(sqlalchemy.String, nullable=True)
     answers = sqlalchemy.Column(sqlalchemy.String)
     object = orm.relation('Objects')

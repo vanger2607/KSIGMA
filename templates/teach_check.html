@@ -1,41 +1,80 @@
-<!DOCTYPE html>
 {% extends "index.html" %}
 
 {% block content %}
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
-          integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
-          crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_teach_tasks.css') }}">
-</head>
-<body>
+<style>
+body {
+   background: linear-gradient(180deg, #699BDD 0%, #DAD1F5 100%);
+}
+#c {
+  position: relative;
+  height: 256px;
+  width: 456px;
+  overflow-x: hidden
+  overflow: auto;
+
+}
+.w3-container{
+
+margin-top: 2px;
+position: absolute;
+margin-bottom: 2px;
+width: 100%;
+overflow-x: hide;
+}
+
+
+</style>
 <h1 align="center">Внимательно проверьте</h1>
 <h2 align="center">задание:</h2>
-<div>
-    <form class="decor" method="post">
-        <div class="form-left-decoration"></div>
-        <div class="form-right-decoration"></div>
-        <div class="circle"></div>
-        <div class="form-inner">
-            {% if not error %}
-                {% if check_box %}
-                    <div class="textt">{% for line in file_lines %}{{ line.question }} {% endfor %}</div>
-                {% else %}
-                     <div class="textt">{% for line in file_lines %}{{ line }}{% endfor %}</div>
-                {% endif %}
-                <a href="{{base_url}}/teacher_cabinet" class="gradient-button" style="padding: 20px 34%;margin: 8px 9px;">Готово</a>
-                <a href="{{base_url}}/teacher/tasks" class="gradient-button" style="padding: 20px 36%;margin: 8px 9px;">Назад</a>
-            {% else %}
-                <p><textarea rows="2" readonly>{{ error }}</textarea></p>
-                <a href="{{base_url}}/teacher/tasks" class="gradient-button" style="padding: 20px 36%;margin: 8px 9px;">Назад</a>
-            {% endif %}
-        </div>
-    </form>
+<div id="c" class="container">
+    <div class="w3-container">
+        название задачи: {{task_name}}
+        <br>
+        урок: {{lesson_name}}
+        <br>
+        {% if task_type == "open" %}
+        {% for question in questions %}
+        <div class="question">{{question}}</div>
+        <input type="text">
+        {%endfor%}
+        {% elif task_type == "radio-buttons" %}
+        <div class="question">{{questions[0]}}</div>
+        {% for variation in variations_of_answers %}
+        <input class="form-check-input" type="radio" value="{{variation}}" name="answers">
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {% elif task_type == "check-boxes"%}
+            {% for variation in variations_of_answers %}
+        <input class="form-check-input" type="checkbox" value="{{variation}}" name="answerss">
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {%endif%}
+
+        <br>
+        <a href="#" class="gradient-button", onclick="save({{questions}}, {{variations_of_answers}}, {{answers}})"> Готово</a>
+<a href="{{base_url}}/create_courses/None/" class="gradient-button"> Назад</a>
+    </div>
 </div>
-</body>
-</html>
-{% endblock %}
+<script>function save(questions, variations_of_answers, answers){
+const formData = new FormData()
+formData.append("task_name", "{{task_name}}")
+formData.append("subject", "{{lesson_name}}")
+if ('{{variations_of_answers}}' != '0'){
+formData.append("variations_of_answers", variations_of_answers)}
+formData.append("answers", answers)
+formData.append("questions", questions)
+fetch("{{base_url}}/" + "save_problem/"+ "{{task_type}}/", {method: 'POST',
+body: formData})
+.then(function(response) {
+  return response.text()
+}).then( function(text) {
+  is_okay = text.includes("OK");
+  if (is_okay){window.location = "{{base_url}}/"+ "teacher_cabinet";}else{alert('что-то пошло не так')}});
+}</script>
+{%endblock%}

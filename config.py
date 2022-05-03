@@ -1,7 +1,11 @@
 DATA_FOLDER = ""
 USERS_DATA_FOLDER = "users"
-BASE_URL = "http://ksigma.herokuapp.com/"
+BASE_URL = "http://192.168.1.107:5000/"
+SENDER_EMAIL = "superksigma@yandex.ru"
+PASSWORD_EMAIL = 'Alexor_2023'
+SUBJECTS = ['Maths', 'Russian', 'English']
 MIN_YEAR = 2017
+DB_NAME = 'Site.db'
 MAX_YEAR = 2200
 PASSWORD_SALT = "something random and full of non-standard characters"
 HOST_IP = "0.0.0.0"  # set to None for production

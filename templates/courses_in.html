@@ -1,0 +1,6 @@
+{% extends "index.html" %}
+{% block content %}
+{% for course in courses %}
+<a href="{{base_url}}/course_student_lessons/{{course}}/" class="gradient-button"> {{course}}</a>
+{% endfor %}
+{% endblock %}

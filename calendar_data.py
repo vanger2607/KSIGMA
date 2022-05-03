@@ -31,7 +31,7 @@ class CalendarData:
 
     def load_calendar(self, filename: str) -> Dict:
         print(filename)
-        with open(filename) as file:
+        with open('calendars/'+filename) as file:
             contents = json.load(file)
         if type(contents) is not dict:
             raise ValueError("Error loading calendar from file '{}'".format(filename))
@@ -347,7 +347,8 @@ class CalendarData:
             self._clear_empty_entries(data)
             self._clear_past_hidden_entries(data)
 
-        with open(os.path.join(".", self.data_folder, "{}".format(filename)), "w+") as file:
+        with open(os.path.join(".", self.data_folder, "{}".format('calendars/' + filename)), "w+") as file:
+            print(file)
             json.dump(data, file)
 
     @staticmethod
