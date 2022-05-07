@@ -7,11 +7,19 @@
     <div id="statusbar" class="">Course was created</div>
     <label form="classSelect">фильтр по предметам</label>
     <select class="form-control" name="filter" onchange='reload(this)'>
-        {% for object in objects %}
+          {% for object in objects %}
         {% if object== object_now%}
+        {% if object == "All"%}
+         <option value="None" selected="selected">{{object}}</option>
+        {%else%}
         <option value="{{object}}" selected="selected">{{object}}</option>
+        {%endif%}
         {% else %}
-        <option value={{object}}> {{object}}</option>
+         {% if object == "All"%}
+         <option value="None" >{{object}}</option>
+        {%else%}
+        <option value="{{object}}" >{{object}}</option>
+        {%endif%}
         {% endif %}
         {% endfor %}
     </select>

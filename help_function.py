@@ -127,7 +127,7 @@ def get_task_id_by_object(object_name: str):
     return tasks
 
 
-def get_courses_by_student(student_id):
+def get_courses_by_student(student_id: int):
     """по айди ученика возвращает название курсов доступных ученику"""
     db_sess = connect_to_db(config.DB_NAME)
     courses_names = []
@@ -143,7 +143,21 @@ def get_courses_by_student(student_id):
         db_sess.commit()
         return 'None'
 
-
+def  get_courses_id_by_student(student_id: int):
+    """по айди ученика возвращает айди курсов доступных ученику"""
+    db_sess = connect_to_db(config.DB_NAME)
+    courses_names = []
+    for student in (db_sess.query(User).filter(User.id == student_id)):
+        courses = student.courses
+    if courses:
+        for course_id in courses:
+            for course in (db_sess.query(Course).filter(Course.id == course_id)):
+                courses_names.append(course.id)
+        db_sess.commit()
+        return courses_names
+    else:
+        db_sess.commit()
+        return 'None'
 def get_lesson_names_by_object(object_name: str):
     """по школьному предмету возвращает список уроков"""
     db_sess = connect_to_db(config.DB_NAME)

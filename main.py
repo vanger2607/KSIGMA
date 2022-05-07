@@ -36,7 +36,8 @@ from help_function import all_tasks, creation_lesson, calendar_name, \
     chang_course, get_all_task_from_lesson, get_info_about_task_by_id, get_course_by_subject_id, \
     students_ids_for_teacher, get_calendar_name_by_id, get_lessons_by_course_id, \
     get_json_name_by_user_id, all_tasks_id, get_task_id_by_object, get_courses_by_student, add_course_to_student, \
-    all_courses_id, get_courses_names_by_subject_id_and_student_id, get_courses_id_by_subject_id_and_student_id
+    all_courses_id, get_courses_names_by_subject_id_and_student_id, get_courses_id_by_subject_id_and_student_id, \
+    get_courses_id_by_student, get_course_id_by_seubject_id
 
 application = Flask(__name__)
 application.config.from_object("config")
@@ -340,8 +341,7 @@ def check_tasks():
         abort(404)
 
 
-@application.route('/make/<calendar_id>/<year>/<month>/new_task/<day_now>/new_calendar_task'
-                   '',
+@application.route('/make/<calendar_id>/<year>/<month>/new_task/<day_now>/new_calendar_task',
                    methods=['GET', 'POST'])
 def new_task_action(calendar_id: int, year: int, month: int, day_now: int):
     if flask.request.method == 'GET':
@@ -530,12 +530,13 @@ def change_course(filter_name):
         courses = all_courses()
         lessons = all_lessons()
         if filter_name == 'None':
-
+            lessons_cr = get_lessons_by_course('maths')
+            lessons_cr = [get_lesson_name_by_id(i) for i in lessons_cr]
             return (render_template('change_courses.html', title='Создание курсов',
                                     lessons=lessons,
                                     objects=config.SUBJECTS,
                                     base_url=current_app.config["BASE_URL"],
-                                    course_now=filter_name, form=form, courses=courses))
+                                    course_now=filter_name, form=form, courses=courses, lessons_cr=lessons_cr))
         else:
             lessons_cr = get_lessons_by_course(filter_name)
             lessons_cr = [get_lesson_name_by_id(i) for i in lessons_cr]
@@ -567,8 +568,8 @@ def add_course(filter_name):
                                     student_now=filter_name, form=form, courses=courses, courses_st=courses_st,
                                     courses_id=courses_id))
         else:
-
             courses_st = get_courses_by_student(filter_name)
+            courses_st_id = get_courses_id_by_student(filter_name)
             return render_template('add_course_to_student.html', title='Создание курсов',
                                    students=students,
                                    students_id=students_id,
@@ -576,15 +577,19 @@ def add_course(filter_name):
                                    objects_id=config.SUBJECTS_ID,
                                    base_url=current_app.config["BASE_URL"],
                                    student_now=filter_name, form=form, courses=courses, courses_st=courses_st,
-                                   courses_id=courses_id)
+                                   courses_id=courses_id, courses_st_id=courses_st_id)
     else:
         abort(404)
 
 
 @application.route('/help_add_course/<filter_name>/', methods=['POST', 'GET'])
 def help_add_course(filter_name):
-    lst = get_course_by_subject_id(filter_name)
-    return jsonify({"lst": lst})
+    if filter_name == "None":
+        lst = all_courses()
+    else:
+        lst = get_course_id_by_seubject_id(filter_name)
+        lst_names = get_course_by_subject_id(filter_name)
+    return jsonify({"lst": lst, 'lst_names': lst_names})
 
 
 @application.route('/adding_course', methods=['POST', 'GET'])
@@ -597,7 +602,10 @@ def adding_course():
 
 @application.route('/help_filter/<filter_name>/', methods=['POST', 'GET'])
 def help_lesson(filter_name):
-    lst = get_lesson_names_by_object(filter_name)
+    if filter_name == "None":
+        lst = all_lessons()
+    else:
+        lst = get_lesson_names_by_object(filter_name)
     return jsonify({'lst': lst})
 
 

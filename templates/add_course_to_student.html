@@ -9,10 +9,18 @@
     <select class="form-control" name="filter" onchange='new_obj(this)'>
         {% for object in objects %}
         {% if object== object_now%}
+        {% if object == "All"%}
+         <option value="None" selected="selected">{{object}}</option>
+        {%else%}
         <option value="{{objects_id[loop.index - 1]}}" selected="selected">{{object}}</option>
+        {%endif%}
         {% else %}
+        {%if object == "All"%}
+         <option value="None" >{{object}}</option>
+        {%else%}
         <option value="{{objects_id[loop.index - 1]}}"> {{object}}</option>
-        {% endif %}
+        {%endif%}
+        {%endif%}
         {% endfor %}
     </select>
     <table class="tasks_table" id="s">
@@ -45,7 +53,7 @@
     <ol id="ol" class="tasks_correct">
         {%if courses_st != "None"%}
         {% for course in courses_st %}
-        <li id="{{course}}" value="{{courses_id[loop.index - 1]}}" onclick='remove_it(id)' class="good" >{{course}}</li>
+        <li id="{{course}}" value="{{courses_st_id[loop.index - 1]}}" onclick='remove_it(id)' class="good" >{{course}}</li>
         {% endfor %}
         {%endif%}
     </ol>
@@ -88,15 +96,18 @@ function new_obj(filter_name){lst = fetch("{{base_url}}/help_add_course/"+ filte
 .then(function(response) {
   return response.json()
 }).then(function(json){lst = json["lst"];
+lst_names = json['lst_names']
 lessons = document.querySelectorAll('.oh');
+i = -1
 for(const name of lessons){name.remove();}
 for(const lesson of lst){let liFirst = document.createElement('tr');
 liFirst.setAttribute('class', 'oh')
 liFirst.setAttribute('id', 'kk')
+    i += 1
      $('#s tbody').prepend(liFirst);
      tb = document.createElement('td');
-     tb.innerHTML = lesson
-     tb.setAttribute("data", lesson)
+     tb.innerHTML = lst_names[i]
+     tb.setAttribute("data-value", lesson)
      tb.setAttribute("onclick", 'testFunction(this)')
     tb.data = lesson
     $('#s tbody > #kk').prepend(tb)

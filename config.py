@@ -1,10 +1,10 @@
 DATA_FOLDER = ""
 USERS_DATA_FOLDER = "users"
-BASE_URL = "superksigma.ru"
+BASE_URL = "http://superksigma.ru/"
 SENDER_EMAIL = "superksigma@yandex.ru"
 PASSWORD_EMAIL = 'Alexor_2023'
-SUBJECTS = ['Maths', 'Russian', 'English']
-SUBJECTS_ID = ['1', '2', '3']
+SUBJECTS = ["All", 'Maths', 'Russian', 'English']
+SUBJECTS_ID = ["0", '1', '2', '3']
 MIN_YEAR = 2017
 DB_NAME = 'Site.db'
 MAX_YEAR = 2200

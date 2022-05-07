@@ -1,6 +1,8 @@
 {% extends "index.html" %}
 {% block content %}
 {% for subject in subjects %}
+{% if subject != "All"%}
 <a href="{{base_url}}/course_student/{{subjects_id[loop.index - 1]}}/" class="gradient-button"> {{subject}}</a>
+{%endif%}
 {% endfor %}
 {% endblock %}
