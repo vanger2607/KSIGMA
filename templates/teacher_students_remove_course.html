@@ -1,0 +1,25 @@
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/list-groups.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="list-group list-group">
+    <h1> Выберите учеников которых нужно удалить с курса </h1>
+
+    <form method="post">
+        {% for course in courses_dict %}
+            <h2>{{ course.name }}</h2>
+            {% for student in courses_dict[course] %}
+                <div>
+                    <input type="checkbox" id="{{ course.id }}_student_{{ student.id }}" value="{{ course.id }}_student_{{ student.id }}" name="{{ course.id }}_student_{{ student.id }}">
+                    <label for="{{ course.id }}_student_{{ student.id }}">{{ student.name }}</label>
+                </div>
+            {% endfor %}
+        {% endfor %}
+        <button class="btn btn-outline-light me-2" type="submit">Забрать</button>
+        <a class="btn btn-outline-light me-2" href="/teacher_profile">Вернуться</a>
+    </form>
+</div>
+{% endblock %}

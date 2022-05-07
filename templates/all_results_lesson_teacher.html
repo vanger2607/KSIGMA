@@ -1,0 +1,29 @@
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/list-groups.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="list-group list-group">
+    <div class="container">
+        <h2 class="classSelect">Результаты ваших учеников</h2>
+        {% if results_dict %}
+            {% for result in results_dict %}
+                <h3>Результаты {{ result }}:
+                    {% for result_mark in results_dict[result] %}
+                        {% if loop.last %}
+                            {{ result_mark }}.
+                        {% else %}
+                            {{ result_mark }},
+                        {% endif %}
+                    {% endfor %}
+                </h3>
+            {% endfor %}
+        {% else %}
+            <label class="classSelect">Ученики ещё не проходили этот тест</label>
+        {% endif %}
+        <a href="/all_results_lessons_teacher/{{ lesson.course_id }}" class="btn btn-outline-light me-2">Вернуться к просмотру результатов</a>
+    </div>
+</div>
+{% endblock %}

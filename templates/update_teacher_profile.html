@@ -1,0 +1,57 @@
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/form.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="text-center form-signin">
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <h1 class="h3 mb-3 fw-normal"> Изменение профиля </h1>
+      <div class="form-floating text-white bg-dark">
+        {% if form.email.errors %}
+            {{ form.email(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.email.label }}
+            {% for error in form.email.errors %}
+              <div class="invalid-feedback">
+                {{ error }}
+              </div>
+            {% endfor %}
+        {% else %}
+            {{ form.email(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.email.label }}
+        {% endif %}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {% if form.name.errors %}
+            {{ form.name(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.name.label }}
+            {% for error in form.name.errors %}
+              <div class="invalid-feedback">
+                {{ error }}
+              </div>
+            {% endfor %}
+        {% else %}
+            {{ form.name(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.name.label }}
+        {% endif %}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {% if form.surname.errors %}
+            {{ form.surname(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.surname.label }}
+            {% for error in form.surname.errors %}
+              <div class="invalid-feedback">
+                {{ error }}
+              </div>
+            {% endfor %}
+        {% else %}
+            {{ form.surname(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.surname.label }}
+        {% endif %}
+      </div>
+      {{ form.submit(type="submit", class="w-100 btn btn-lg btn-primary") }}
+    </form>
+</div>
+{% endblock %}

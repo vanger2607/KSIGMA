@@ -1,73 +1,95 @@
-{% extends "index.html" %}
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/form.css') }}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<style>.form {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 350px;
-    border: 3px solid gray;
-    background-color: #9fff8c;
-    border-radius: 5px;
-    padding: 10px;</style>
-<h1>Регистрация</h1>
-
-<form action="" method="post" class="form">
+<div class="text-center form-signin">
+  <form method="post" novalidate>
     {{ form.hidden_tag() }}
-    <p>
-        {{ form.email.label }}<br>
-        {{ form.email(class="form-control", type="email") }}<br>
-        {% for error in form.email.errors %}
-            <p class="alert alert-danger" role="alert">
+    <h1 class="h3 mb-3 fw-normal"> Регистрация ученика </h1>
+      <div class="form-floating text-white bg-dark">
+        {% if form.email.errors %}
+            {{ form.email(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.email.label }}
+            {% for error in form.email.errors %}
+              <div class="invalid-feedback">
                 {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.password.label }}<br>
-        {{ form.password(class="form-control", type="password") }}<br>
-        {% for error in form.password.errors %}
-            <p class="alert alert-danger" role="alert">
+              </div>
+            {% endfor %}
+        {% else %}
+            {{ form.email(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.email.label }}
+        {% endif %}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {% if message %}
+          {{ form.password(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+          {{ form.password.label }}
+          <div class="invalid-feedback">
+            {{ message }}
+          </div>
+        {% else %}
+            {{ form.password(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.password.label }}
+        {% endif %}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {% if message %}
+          {{ form.password_again(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+          {{ form.password_again.label }}
+          <div class="invalid-feedback">
+            {{ message }}
+          </div>
+        {% else %}
+            {{ form.password_again(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.password_again.label }}
+        {% endif %}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {% if form.name.errors %}
+            {{ form.name(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.name.label }}
+            {% for error in form.name.errors %}
+              <div class="invalid-feedback">
                 {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.password_again.label }}<br>
-        {{ form.password_again(class="form-control", type="password") }}<br>
-        {% for error in form.password_again.errors %}
-            <p class="alert alert-danger" role="alert">
+              </div>
+            {% endfor %}
+        {% else %}
+            {{ form.name(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.name.label }}
+        {% endif %}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {% if form.surname.errors %}
+            {{ form.surname(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.surname.label }}
+            {% for error in form.surname.errors %}
+              <div class="invalid-feedback">
                 {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.name.label }}<br>
-        {{ form.name(class="form-control") }}<br>
-        {% for error in form.name.errors %}
-            <p class="alert alert-danger" role="alert">
+              </div>
+            {% endfor %}
+        {% else %}
+            {{ form.surname(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.surname.label }}
+        {% endif %}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {% if form.grade.errors %}
+            {{ form.grade(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.grade.label }}
+            {% for error in form.grade.errors %}
+              <div class="invalid-feedback">
                 {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.surname.label }}<br>
-        {{ form.surname(class="form-control") }}<br>
-        {% for error in form.surname.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>
-        {{ form.grade.label }}<br>
-        {{ form.grade(class="form-control", type="Select") }}<br>
-        {% for error in form.email.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </p>
-    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-    {{message}}
-</form>
+              </div>
+            {% endfor %}
+        {% else %}
+            {{ form.grade(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.grade.label }}
+        {% endif %}
+      </div>
+      {{ form.submit(type="submit", class="w-100 btn btn-lg btn-primary") }}
+    </form>
+</div>
 {% endblock %}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    {% include "core/favicon.html" %}
+    {% include "core/bootstrap_static.html" %}
+    {% block not_default_static %}{% endblock %}
+  </head>
+  <body class="text-white bg-dark d-flex flex-column min-vh-100" style="--bs-bg-opacity: .95;">
+    <header>
+      {% include "core/header.html" %}
+    </header>
+    <main>
+      {% block content %}
+      {% endblock %}
+    </main>
+
+    {% include "core/footer.html" %}
+
+    {% block not_default_scripts %}{% endblock %}
+    {% include "core/bootstrap_scripts.html" %}
+  </body>
+</html>

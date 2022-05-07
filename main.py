@@ -1,34 +1,25 @@
 import os
+from json import dumps, loads
 
-import flask
-from flask import current_app, Flask, jsonify, redirect, \
+from flask import Flask, redirect, \
     render_template, request
-from flask_login import current_user, login_required, login_user, LoginManager, \
-    logout_user
-from flask_restful import abort, Api
+from flask_login import current_user, login_user, LoginManager, logout_user
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, PasswordField, SelectField, StringField, \
     SubmitField
 from wtforms.fields import EmailField
 from wtforms.validators import DataRequired
 
-from calendar_data import CalendarData
-from data import db_session, task_resource
+from data import db_session
+from data.Courses import Course
 from data.lesson import Lesson
 from data.objects import Objects
+from data.results import Result
+from data.tasks import SuperTasks
 from data.users import User
-from data.Courses import Course
-from Errors import BadCourse, Badlesson
-from gregorian_calendar import GregorianCalendar
-from help_function import all_courses, all_lessons, all_tasks, calendar_name, \
-    chang_course, creation_course, creation_lesson, get_lesson_name_by_id, \
-    get_lesson_names_by_object, get_lessons_by_course, \
-    get_task_names_by_object, is_teacher, students_for_teacher
 
 my_super_app = Flask(__name__)
-my_super_app.config.from_object("config")
 my_super_app.config['SECRET_KEY'] = '12Wqfgr66ThSd88UI234901_qprjf'
-api = Api(my_super_app)
 
 db_session.global_init("db/main.db")
 
@@ -52,6 +43,13 @@ class TeacherRegisterForm(FlaskForm):
     submit = SubmitField('Зарегистрироваться')
 
 
+class TeacherUpdateForm(FlaskForm):
+    email = EmailField('Почта', validators=[DataRequired()])
+    name = StringField('Имя', validators=[DataRequired()])
+    surname = StringField('Фамилия', validators=[DataRequired()])
+    submit = SubmitField('Изменить')
+
+
 class StudentRegisterForm(FlaskForm):
     email = EmailField('Почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
@@ -61,6 +59,14 @@ class StudentRegisterForm(FlaskForm):
     surname = StringField('Фамилия', validators=[DataRequired()])
     grade = SelectField('Класс', choices=[5, 6, 7, 8, 9, 10, 11])
     submit = SubmitField('Зарегистрироваться')
+
+
+class StudentUpdateForm(FlaskForm):
+    email = EmailField('Почта', validators=[DataRequired()])
+    name = StringField('Имя', validators=[DataRequired()])
+    surname = StringField('Фамилия', validators=[DataRequired()])
+    grade = SelectField('Класс', choices=[5, 6, 7, 8, 9, 10, 11])
+    submit = SubmitField('Изменить')
 
 
 class LoginForm(FlaskForm):
@@ -77,19 +83,25 @@ class NewCourseForm(FlaskForm):
     object = SelectField('Предмет', choices=[i.name for i in objects])
 
 
+class UpdateCourseForm(FlaskForm):
+    text_name = StringField('Новое название курса',
+                            validators=[DataRequired()])
+    db_sess = db_session.create_session()
+    objects = db_sess.query(Objects).all()
+    object = SelectField('Новый предмет', choices=[i.name for i in objects])
+
+
 class NewLessonForm(FlaskForm):
     text_name = StringField('Название урока', validators=[DataRequired()])
 
-    def __init__(self, courses=None, **kwargs):
-        super().__init__(**kwargs)
-        if courses is None:
-            courses = []
-        self.object = SelectField('Курс', choices=[i.name for i in courses])
+
+class UpdateLessonForm(FlaskForm):
+    text_name = StringField('Название урока', validators=[DataRequired()])
 
 
 @my_super_app.route('/')
 def start():
-    return render_template('index.html', title='SuperKsigma')
+    return render_template('index.html', title='КСИГМА')
 
 
 @my_super_app.route('/reqister_student', methods=['GET', 'POST'])
@@ -191,7 +203,10 @@ def teacher_cabinet():
         return redirect('/login')
     if not current_user.is_teacher:
         return redirect('/student_profile')
-    return render_template('teacher_cabinet.html', title='Личный кабинет')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    return render_template('teacher_cabinet.html', title='Личный кабинет',
+                           user=user)
 
 
 @my_super_app.route('/all_courses', methods=['POST', 'GET'])
@@ -207,7 +222,7 @@ def all_courses():
     objects = db_sess.query(Objects).all()
     user = db_sess.query(User).filter(User.id == current_user.id).first()
     if sorting not in [obj.name for obj in objects] and 'Все' != sorting:
-        abort(404)
+        return redirect('/teacher_profile')
     if 'Все' == sorting:
         obj = {'name': 'Все'}
         courses = user.courses
@@ -231,7 +246,7 @@ def course_lessons(course_id):
     course_obj = [curs for curs in user.courses if
                   curs.id == course_id]
     if not course_obj:
-        abort(404)
+        return redirect('/student_profile')
     course_obj = db_sess.query(Course).filter(Course.id == course_id).first()
     return render_template('course.html', title='Уроки курса',
                            lessons=course_obj.lessons)
@@ -253,22 +268,34 @@ def pass_task(task_id):
         if lesson_obj in course_obj.lessons:
             q = True
     if not q:
-        abort(404)
+        return redirect('/student_profile')
     if not lesson_obj:
-        abort(404)
+        return redirect('/student_profile')
 
     if request.method == 'POST':
         errors = []
-        correct = []
+        correct = 0
         for task in lesson_obj.tasks:
-            if request.form[f'task_{task.id}'].lower() == task.answers.lower():
-                correct.append(task)
+            if request.form[f'task_{task.id}'].lower().strip() \
+                    != task.answers.lower().strip():
+                errors.append((task.question, task.answers.strip(),
+                               request.form[f'task_{task.id}'].lower()))
             else:
-                errors.append(task)
-        return ' '.join([i.question for i in errors])
+                correct += 1
+        result_dict = {'mark': f'{correct}/{len(lesson_obj.tasks)}',
+                       'errors': errors}
+        result_obj = Result()
+        result_obj.test = dumps(result_dict)
+        result_obj.user_id = user.id
+        result_obj.lesson_id = lesson_obj.id
+        db_sess.add(result_obj)
+        db_sess.commit()
+        return render_template('pass_task_complete.html',
+                               title='Прохождение задачи завершено',
+                               result_dict=result_dict)
 
     return render_template('pass_task.html', title='Прохождение задачи',
-                           lesson=lesson_obj)
+                           lesson=lesson_obj, form=FlaskForm())
 
 
 @my_super_app.route('/create_course', methods=['POST', 'GET'])
@@ -289,7 +316,7 @@ def create_Course():
         user = db_sess.query(User).filter(User.id == current_user.id).first()
         user.courses.append(course_obj)
         db_sess.commit()
-        return redirect('teacher_profile')
+        return redirect('/teacher_profile')
 
     return render_template('create_course.html', title='Создание курса',
                            form=form)
@@ -308,316 +335,474 @@ def create_lesson():
     if not user.courses:
         return 'У вас ещё нет курсов'
 
-    form = NewLessonForm(user.courses)
+    form = NewLessonForm()
     if form.validate_on_submit():
-        lessons = []
+        courses_obj = db_sess.query(Course).filter(
+            Course.id == int(request.form[f'courses'].split('_')[-1])).first()
+        tasks_list = []
         for i in range(10):
             if request.form[f'task_{i}'] and request.form[f'answer_{i}']:
-                lessons.append((request.form[f'task_{i}'],
-                                request.form[f'answer_{i}']))
-        if not lessons:
+                tasks_list.append((request.form[f'task_{i}'],
+                                   request.form[f'answer_{i}']))
+        if not tasks_list:
             return render_template('create_lesson.html',
                                    title='Создание урока',
                                    form=form,
-                                   error='Нет правильно заполненных задач')
-        print(lessons)
+                                   error='Нет правильно заполненных задач',
+                                   courses=user.courses)
+        less = Lesson()
+        less.name = form.text_name.data
+        less.type_object = courses_obj.object_id
+        db_sess.add(less)
+        courses_obj.lessons.append(less)
+        db_sess.commit()
+        db_sess = db_session.create_session()
 
-        return redirect('teacher_profile')
+        less_obj = db_sess.query(Lesson).filter(
+            Lesson.name == str(form.text_name.data) and
+            Lesson.type_object == courses_obj.object_id
+        ).first()
+        for task in tasks_list:
+            task_obj = SuperTasks()
+            task_obj.type = 'input'
+            task_obj.question = task[0].strip()
+            task_obj.answers = task[1].strip()
+            task_obj.lesson_id = less_obj.id
+            db_sess.add(task_obj)
+        db_sess.commit()
+        return redirect('/teacher_profile')
 
     return render_template('create_lesson.html', title='Создание урока',
+                           form=form, courses=user.courses)
+
+
+@my_super_app.route('/teacher_students_add', methods=['POST', 'GET'])
+def teacher_students_add():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    your_students = list(map(int, current_user.student_ids.split()))
+    students = db_sess.query(User).filter(User.id != current_user.id).filter(
+        User.is_teacher.is_(False)).all()
+    students = [student_obj for student_obj in students if
+                student_obj.id not in your_students]
+
+    if request.method == 'POST':
+        for field in request.form:
+            your_students.append(str(field).split('_')[1])
+        user = db_sess.query(User).filter(User.id == current_user.id).first()
+        user.student_ids = ' '.join(map(str, your_students))
+        db_sess.commit()
+        return redirect('/teacher_profile')
+
+    return render_template('teacher_students_add.html', title='Выбор учеников',
+                           students=students, form=FlaskForm())
+
+
+@my_super_app.route('/teacher_students', methods=['POST', 'GET'])
+def teacher_students():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    your_students = list(map(int, current_user.student_ids.split()))
+    students = db_sess.query(User).filter(User.id != current_user.id).filter(
+        User.is_teacher.is_(False)).all()
+    students = [student_obj for student_obj in students if
+                student_obj.id in your_students]
+
+    if request.method == 'POST':
+        for i in request.form:
+            your_students.remove(int(str(i).split('_')[1]))
+        user = db_sess.query(User).filter(User.id == current_user.id).first()
+        user.student_ids = ' '.join(map(str, your_students))
+        db_sess.commit()
+        return redirect('/teacher_profile')
+
+    return render_template('teacher_students.html', title='Ваши ученики',
+                           students=students, form=FlaskForm())
+
+
+@my_super_app.route('/teacher_students_add_course', methods=['POST', 'GET'])
+def teacher_students_add_course():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    your_students = list(map(int, current_user.student_ids.split()))
+    students = db_sess.query(User).filter(User.id != current_user.id).filter(
+        User.is_teacher.is_(False)).all()
+    students = [student_obj for student_obj in students if
+                student_obj.id in your_students]
+
+    if request.method == 'POST':
+        courses_obj = db_sess.query(Course).filter(
+            Course.id == int(request.form[f'course'].split('_')[-1])).first()
+        for field in request.form:
+            if field.startswith('student'):
+                student_obj = db_sess.query(User).filter(
+                    User.id == int(field.split('_')[-1])).first()
+                if courses_obj not in student_obj.courses:
+                    student_obj.courses.append(courses_obj)
+        db_sess.commit()
+        return redirect('/teacher_profile')
+
+    return render_template('teacher_students_add_course.html',
+                           title='Выдать курс',
+                           students=students,
+                           courses=user.courses,
+                           form=FlaskForm())
+
+
+@my_super_app.route('/teacher_students_remove_course', methods=['POST', 'GET'])
+def teacher_students_remove_course():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    your_students = list(map(int, current_user.student_ids.split()))
+    students = db_sess.query(User).filter(User.id != current_user.id).filter(
+        User.is_teacher.is_(False)).all()
+    students = [student_obj for student_obj in students if
+                student_obj.id in your_students]
+    courses_dict = {}
+    for student_obj in students:
+        for course in student_obj.courses:
+            if course in courses_dict:
+                courses_dict[course].append(student_obj)
+            else:
+                courses_dict[course] = [student_obj]
+
+    if request.method == 'POST':
+        for field in request.form:
+            student_obj = db_sess.query(User).filter(
+                User.id == int(field.split('_')[-1])).first()
+            student_obj.courses.remove(db_sess.query(Course).filter(
+                Course.id == int(field.split('_')[0])).first())
+        db_sess.commit()
+        return redirect('/teacher_profile')
+
+    return render_template('teacher_students_remove_course.html',
+                           title='Забрать курс',
+                           courses_dict=courses_dict,
+                           form=FlaskForm())
+
+
+@my_super_app.route('/change_courses/')
+def change_courses():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    return render_template('change_courses.html',
+                           title='Выбор курса для редактирования',
+                           courses=user.courses)
+
+
+@my_super_app.route('/change_lessons_courses/')
+def change_lessons_courses():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    return render_template('change_lessons_courses.html',
+                           title='Выбор курса для редактирования',
+                           courses=user.courses)
+
+
+@my_super_app.route('/change_lessons_course/<int:course_id>/')
+def change_lessons_course(course_id):
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    course_obj = db_sess.query(Course).filter(Course.id == course_id).first()
+    if not course_obj:
+        return redirect('/student_profile')
+    return render_template('change_lessons_course.html',
+                           title='Выбор урока для редактирования',
+                           lessons=course_obj.lessons)
+
+
+@my_super_app.route('/change_course/<int:course_id>/', methods=['POST', 'GET'])
+def change_course(course_id):
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    course_obj = db_sess.query(Course).filter(Course.id == course_id).first()
+    if not course_obj:
+        return redirect('/student_profile')
+    form = UpdateCourseForm(object=course_obj.object.name)
+    if form.validate_on_submit():
+        course_obj.name = form.text_name.data
+        object_obj = db_sess.query(Objects).filter(
+            Objects.name == form.object.data).first()
+        course_obj.object_id = object_obj.id
+        db_sess.commit()
+        return redirect('/teacher_profile')
+
+    return render_template('change_course.html', title='Редактирование курса',
+                           form=form, course=course_obj)
+
+
+@my_super_app.route('/change_lesson/<int:lesson_id>/', methods=['POST', 'GET'])
+def change_lesson(lesson_id):
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    lesson_obj = db_sess.query(Lesson).filter(Lesson.id == lesson_id).first()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    if not lesson_obj:
+        return redirect('/student_profile')
+    form = UpdateLessonForm()
+    if form.validate_on_submit():
+        courses_obj = db_sess.query(Course).filter(
+            Course.id == int(request.form[f'courses'].split('_')[-1])).first()
+        new_tasks_list = []
+        for i in range(10 - len(lesson_obj.tasks)):
+            if request.form[f'task_{i}'] and request.form[f'answer_{i}']:
+                new_tasks_list.append((request.form[f'task_{i}'],
+                                       request.form[f'answer_{i}']))
+
+        old_tasks_list = []
+        for i in [task.id for task in lesson_obj.tasks]:
+            if request.form[f'old_task_{i}'] and \
+                    request.form[f'old_answer_{i}']:
+                old_tasks_list.append((i, request.form[f'old_task_{i}'],
+                                       request.form[f'old_answer_{i}']))
+        if not new_tasks_list and not old_tasks_list:
+            return render_template('change_lesson.html',
+                                   title='Редактирование урока',
+                                   form=form,
+                                   error='Нет правильно заполненных задач',
+                                   lesson=lesson_obj,
+                                   courses=user.courses)
+
+        lesson_obj.name = form.text_name.data
+        if lesson_obj.course_id != courses_obj.id:
+            old_courses_obj = db_sess.query(Course).filter(
+                Course.id == lesson_obj.course_id).first()
+            old_courses_obj.lessons.remove(lesson_obj)
+            courses_obj.lessons.append(lesson_obj)
+
+        for task in new_tasks_list:
+            task_obj = SuperTasks()
+            task_obj.type = 'input'
+            task_obj.question = task[0].strip()
+            task_obj.answers = task[1].strip()
+            task_obj.lesson_id = lesson_obj.id
+            db_sess.add(task_obj)
+
+        for task in old_tasks_list:
+            task_obj = db_sess.query(SuperTasks).filter(
+                SuperTasks.id == task[0]).first()
+            task_obj.type = 'input'
+            task_obj.question = task[1].strip()
+            task_obj.answers = task[2].strip()
+            db_sess.add(task_obj)
+
+        db_sess.commit()
+        return redirect('/teacher_profile')
+
+    return render_template('change_lesson.html', title='Редактирование урока',
+                           form=form, lesson=lesson_obj, courses=user.courses)
+
+
+@my_super_app.route('/all_results_courses/')
+def all_results_courses():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if current_user.is_teacher:
+        return redirect('/teacher_profile')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    return render_template('all_results_courses.html',
+                           title='Выбор курса для просмотра результатов',
+                           courses=user.courses)
+
+
+@my_super_app.route('/all_results_lessons/<int:course_id>/')
+def all_results_lessons(course_id):
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if current_user.is_teacher:
+        return redirect('/teacher_profile')
+    db_sess = db_session.create_session()
+    course_obj = db_sess.query(Course).filter(Course.id == course_id).first()
+    if not course_obj:
+        return redirect('/student_profile')
+    return render_template('all_results_lessons.html',
+                           title='Выбор урока для просмотра результатов',
+                           lessons=course_obj.lessons)
+
+
+@my_super_app.route('/all_results_lesson/<int:lesson_id>/')
+def all_results_lesson(lesson_id):
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if current_user.is_teacher:
+        return redirect('/teacher_profile')
+    db_sess = db_session.create_session()
+    lesson_obj = db_sess.query(Lesson).filter(Lesson.id == lesson_id).first()
+    if not lesson_obj:
+        return redirect('/student_profile')
+    results = db_sess.query(Result).filter(
+        Result.lesson_id == lesson_id and Result.user_id == current_user.id)
+    return render_template('all_results_lesson.html',
+                           title='Ваши результаты',
+                           lesson=lesson_obj,
+                           results=[loads(i.test) for i in results.all()])
+
+
+@my_super_app.route('/all_results_courses_teacher/')
+def all_results_courses_teacher():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    return render_template('all_results_courses_teacher.html',
+                           title='Выбор курса для просмотра' +
+                                 ' результатов учеников',
+                           courses=user.courses)
+
+
+@my_super_app.route('/all_results_lessons_teacher/<int:course_id>/')
+def all_results_lessons_teacher(course_id):
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    course_obj = db_sess.query(Course).filter(Course.id == course_id).first()
+    if not course_obj:
+        return redirect('/student_profile')
+    return render_template('all_results_lessons_teacher.html',
+                           title='Выбор урока для просмотра результатов' +
+                                 ' учеников',
+                           lessons=course_obj.lessons)
+
+
+@my_super_app.route('/all_results_lesson_teacher/<int:lesson_id>/')
+def all_results_lesson_teacher(lesson_id):
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    lesson_obj = db_sess.query(Lesson).filter(Lesson.id == lesson_id).first()
+    if not lesson_obj:
+        return redirect('/teacher_profile')
+    results_dict = {}
+    for result in lesson_obj.results:
+        if result.user.name in results_dict:
+            results_dict[result.user.name].append(loads(result.test)['mark'])
+        else:
+            results_dict[result.user.name] = [loads(result.test)['mark']]
+    return render_template('all_results_lesson_teacher.html',
+                           title='Результаты ваших учеников',
+                           lesson=lesson_obj,
+                           results_dict=results_dict)
+
+
+@my_super_app.route('/my_teachers')
+def my_teachers():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if current_user.is_teacher:
+        return redirect('/teacher_profile')
+    teachers = []
+    db_sess = db_session.create_session()
+    all_teachers = db_sess.query(User).filter(User.is_teacher.is_(True)).all()
+    for teacher in all_teachers:
+        if str(current_user.id) in teacher.student_ids:
+            teachers.append(teacher)
+    return render_template('my_teachers.html',
+                           title='Мои учителя', teachers=teachers)
+
+
+@my_super_app.route('/update_student_profile', methods=['POST', 'GET'])
+def update_student_profile():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if current_user.is_teacher:
+        return redirect('/teacher_profile')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    form = StudentUpdateForm(
+        email=user.email,
+        name=user.name,
+        surname=user.surname,
+        grade=user.grade,
+    )
+    if form.validate_on_submit():
+        if db_sess.query(User).filter(User.email == form.email.data).filter(
+                User.id != user.id).first():
+            return render_template('update_student_profile.html',
+                                   title='Изменеие данных',
+                                   form=form,
+                                   message="Пользователь с таким email" +
+                                           " уже есть")
+        user.name = form.name.data
+        user.surname = form.surname.data
+        user.email = form.email.data
+        user.grade = form.grade.data
+        db_sess.commit()
+
+        return redirect('/student_profile')
+    return render_template('update_student_profile.html',
+                           title='Изменеие данных',
                            form=form)
 
 
-@my_super_app.route('/teacher_calendar/')
-@login_required
-def teacher_calendar():
-    if is_teacher(current_user.get_id()):
-        calendar_title = calendar_name('Ivan')
-        students = students_for_teacher(current_user.get_id())
-        current_day, current_month, current_year = GregorianCalendar.current_date()
-        month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
-        calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
-                                     current_app.config["WEEK_STARTING_DAY"])
-        try:
-            data = calendar_data.load_calendar(calendar_title)
-        except FileNotFoundError:
-            abort(404)
-        tasks = calendar_data.tasks_from_calendar(current_year, current_month,
-                                                  data)
-        tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year,
-                                                                 current_month,
-                                                                 data, tasks)
-        weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
-        return render_template('calendar_teacher.html',
-                               title='Личный кабинет',
-                               calendar_id=calendar_title,
-                               year=current_year,
-                               month=current_month,
-                               month_name=month_name,
-                               current_year=current_year,
-                               current_month=current_month,
-                               current_day=current_day,
-                               month_days=GregorianCalendar.month_days(
-                                   current_year, current_month),
-                               base_url=current_app.config["BASE_URL"],
-                               tasks=tasks,
-                               display_view_past_button=current_app.config[
-                                   "SHOW_VIEW_PAST_BUTTON"],
-                               weekdays_headers=weekdays_headers,
-                               students=students)
-    else:
-        abort(404)
-
-
-@my_super_app.route('/teacher/tasks', methods=['POST', 'GET'])
-@login_required
-def tasks():
-    if is_teacher(current_user.get_id()):
-        if request.method == 'GET':
-            return render_template('teach_create_task.html',
-                                   title='Создание задачи')
-        elif request.method == 'POST':
-            print(request.form.get('text'))
-            print(request.form.get('lesson'))
-            print(request.form.get('file'))
-            return redirect('/teacher/check_tasks')
-    else:
-        abort(404)
-
-
-@my_super_app.route('/teacher/check_tasks', methods=['POST'])
-@login_required
-def check_tasks():
-    TEMPLATE = 'teach_check.html'
-    files = request.files['file'].read().decode('utf-8-sig')
-    files_s = [i.strip() for i in files.split('\n')]
-    file = {}
-    for i in files_s:
-        if i:
-            file[i.split(':')[0]] = [j.strip() for j in
-                                     i.split(':')[1].split('|')]
-    file_lines = []
-    error = None
-    if file['Type'][0] == 'close':
-        for i in range(len(file['Questions'])):
-            if i == len(file['Answers']):
-                file_lines = []
-                error = 'Ошибка, ответов меньше чем вопросов'
-                break
-            else:
-                file_lines.append(
-                    file['Questions'][i] + ': ' + file['Answers'][i] + '\n')
-        context = {'title': 'Проверка задачи',
-                   'file_lines': file_lines,
-                   'error': error
-                   }
-        return render_template(TEMPLATE, **context)
-    elif file['Type'][0] == 'open':
-        for i in range(len(file['Questions'])):
-            if i == len(file['Variations_of_answers']):
-                file_lines = []
-                error = 'Ошибка, ответов меньше чем вопросов'
-                break
-            else:
-                file_lines.append({'question': file['Questions'][i] + '\n',
-                                   'answers': [i + '\n' for i in
-                                               file['Variations_of_answers'][
-                                                   i].split(', ')]
-                                   })
-
-        context = {'title': 'Проверка задачи',
-                   'file_lines': file_lines,
-                   'check_box': True,
-                   'error': error
-                   }
-        return render_template(TEMPLATE, **context)
-
-
-@my_super_app.route('/<calendar_id>/<year>/<month>/new_task',
-                    methods=['GET', 'POST'])
-def new_task_action(calendar_id: str, year: int, month: int):
-    if flask.request.method == 'GET':
-        GregorianCalendar.setfirstweekday(
-            current_app.config["WEEK_STARTING_DAY"])
-
-        current_day, current_month, current_year = GregorianCalendar.current_date()
-        year = max(min(int(year), current_app.config["MAX_YEAR"]),
-                   current_app.config["MIN_YEAR"])
-        month = max(min(int(month), 12), 1)
-        month_names = GregorianCalendar.MONTH_NAMES
-
-        if current_month == month and current_year == year:
-            day = current_day
-        else:
-            day = 1
-        day = int(request.args.get("day", day))
-
-        task = {
-            "date": CalendarData.date_for_frontend(year, month, day),
-            "is_all_day": True,
-            "repeats": False,
-            "details": "",
-        }
-
-        emojis_enabled = current_app.config.get("EMOJIS_ENABLED", False)
-
-        return render_template(
-            "task.html",
-            calendar_id=calendar_id,
-            year=year,
-            month=month,
-            min_year=current_app.config["MIN_YEAR"],
-            max_year=current_app.config["MAX_YEAR"],
-            month_names=month_names,
-            task=task,
-            base_url=current_app.config["BASE_URL"],
-            editing=False,
-            emojis_enabled=emojis_enabled,
-            button_default_color_value=current_app.config[
-                "BUTTON_CUSTOM_COLOR_VALUE"],
-            buttons_colors=current_app.config["BUTTONS_COLORS_LIST"],
-            buttons_emojis=current_app.config[
-                "BUTTONS_EMOJIS_LIST"] if emojis_enabled else tuple(),
-        )
-
-
-@my_super_app.route('/<calendar_id>/<year>/<month>/<day>/<task_id>/',
-                    methods=['POST', 'DELETE', 'GET'])
-def delete_task(calendar_id, year, month, day, task_id):
-    print('ok')
-    calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
-                                 current_app.config["WEEK_STARTING_DAY"])
-    calendar_data.delete_task(
-        calendar_id=calendar_id,
-        year_str=year,
-        month_str=month,
-        day_str=day,
-        task_id=int(task_id),
+@my_super_app.route('/update_teacher_profile', methods=['POST', 'GET'])
+def update_teacher_profile():
+    if not current_user.is_authenticated:
+        return redirect('/login')
+    if not current_user.is_teacher:
+        return redirect('/student_profile')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    form = TeacherUpdateForm(
+        email=user.email,
+        name=user.name,
+        surname=user.surname,
     )
-    return jsonify({'success': 'OK'})
+    if form.validate_on_submit():
+        if db_sess.query(User).filter(User.email == form.email.data).filter(
+                User.id != user.id).first():
+            return render_template('update_student_profile.html',
+                                   title='Изменеие данных',
+                                   form=form,
+                                   message="Пользователь с таким email" +
+                                           " уже есть")
+        user.name = form.name.data
+        user.surname = form.surname.data
+        user.email = form.email.data
+        db_sess.commit()
 
-
-@my_super_app.route('/calendar_student')
-def student_calendar_1():
-    calendar_title = calendar_name(current_user.id)
-    current_day, current_month, current_year = GregorianCalendar.current_date()
-    month_name = GregorianCalendar.MONTH_NAMES[current_month - 1]
-    calendar_data = CalendarData(current_app.config["DATA_FOLDER"],
-                                 current_app.config["WEEK_STARTING_DAY"])
-    try:
-        data = calendar_data.load_calendar(calendar_title)
-    except FileNotFoundError:
-        abort(404)
-    tasks = calendar_data.tasks_from_calendar(current_year, current_month,
-                                              data)
-    tasks = calendar_data.add_repetitive_tasks_from_calendar(current_year,
-                                                             current_month,
-                                                             data, tasks)
-    weekdays_headers = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
-    return render_template('calendar.html',
-                           title='Личный кабинет', calendar_id=calendar_title,
-                           year=current_year,
-                           month=current_month,
-                           month_name=month_name,
-                           current_year=current_year,
-                           current_month=current_month,
-                           current_day=current_day,
-                           month_days=GregorianCalendar.month_days(
-                               current_year, current_month),
-                           base_url=current_app.config["BASE_URL"],
-                           tasks=tasks,
-                           display_view_past_button=current_app.config[
-                               "SHOW_VIEW_PAST_BUTTON"],
-                           weekdays_headers=weekdays_headers)
-
-
-@my_super_app.route('/lesson', methods=['POST'])
-def lesson():
-    lst = request.form.get('array').split(',')
-    name = request.form.get('name')
-    try:
-        creation_lesson(lst, name)
-    except Badlesson:
-        return jsonify({'sucess': 'bad'})
-    return jsonify({'succes': 'Ok'})
-
-
-@my_super_app.route('/create_courses/<filter_name>/', methods=["GET", "POST"])
-def create_cour(filter_name):
-    form = LessonForm()
-    if filter_name == 'None':
-        lessons = all_lessons()
-
-        return (render_template('courses.html', title='Создание курсов',
-                                lessons=lessons,
-                                objects=['math', 'russia'],
-                                base_url=current_app.config["BASE_URL"],
-                                object_now=filter_name, form=form))
-    else:
-        lessons = get_lesson_names_by_object(filter_name)
-        print(lessons)
-        return render_template('courses.html', title='Создание курсов',
-                               lessons=lessons,
-                               objects=['math', 'russia'],
-                               base_url=current_app.config["BASE_URL"],
-                               object_now=filter_name, form=form, )
-
-
-@my_super_app.route('/course', methods=['POST'])
-def course():
-    lst = request.form.get('array').split(',')
-    name = request.form.get('name')
-    try:
-        creation_course(lst, name)
-    except BadCourse:
-        return jsonify({'sucess': 'bad'})
-    return jsonify({'succes': 'Ok'})
-
-
-@my_super_app.route('/change_course/<filter_name>/')
-def change_course(filter_name):
-    form = LessonForm()
-    courses = all_courses()
-    print(courses)
-    lessons = all_lessons()
-    if filter_name == 'None':
-
-        return (render_template('change_courses.html', title='Создание курсов',
-                                lessons=lessons,
-                                objects=['math', 'russia'],
-                                base_url=current_app.config["BASE_URL"],
-                                course_now=filter_name, form=form,
-                                courses=courses))
-    else:
-        lessons_cr = get_lessons_by_course(filter_name)
-        lessons_cr = [get_lesson_name_by_id(i) for i in lessons_cr]
-        print(lessons_cr)
-        return render_template('change_courses.html', title='Создание курсов',
-                               lessons=lessons,
-                               objects=['math', 'russia'],
-                               base_url=current_app.config["BASE_URL"],
-                               course_now=filter_name, form=form,
-                               courses=courses, lessons_cr=lessons_cr)
-
-
-@my_super_app.route('/help_filter/<filter_name>/', methods=['POST'])
-def help_lesson(filter_name):
-    lst = get_lesson_names_by_object(filter_name)
-    return jsonify({'lst': lst})
-
-
-@my_super_app.route('/changing_course', methods=['POST'])
-def changing_course():
-    lst = request.form.get('array').split(',')
-    name = request.form.get('name')
-    try:
-        chang_course(lst, name)
-    except BadCourse:
-        return jsonify({'sucess': 'bad'})
-    return jsonify({'succes': 'Ok'})
+        return redirect('/teacher_profile')
+    return render_template('update_teacher_profile.html',
+                           title='Изменеие данных',
+                           form=form)
 
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    api.add_resource(task_resource.Task, '/<calendar_id>/new_task')
     my_super_app.run(host='127.0.0.1', port=port)

@@ -21,3 +21,6 @@ class Lesson(Database, SerializerMixin):
     course_id = sqlalchemy.Column(sqlalchemy.Integer,
                                   sqlalchemy.ForeignKey("courses.id"))
     course = orm.relation('Course')
+
+    results = orm.relation("Result", back_populates='lesson')
+

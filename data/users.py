@@ -28,9 +28,12 @@ class User(Database, UserMixin, SerializerMixin):
 
     # Служебные поля учеников
     grade = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
+    teachers = sqlalchemy.Column(sqlalchemy.String, nullable=True, default='')
+    results = orm.relation("Result", back_populates='user')
 
     # Служебные поля учителей
-    student_ids = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    student_ids = sqlalchemy.Column(sqlalchemy.String, nullable=True,
+                                    default='')
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)

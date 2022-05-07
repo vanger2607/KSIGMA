@@ -1,0 +1,34 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+
+<div class="container">
+      <h2 class="classSelect">Поздравляем вы завершили тест</h2>
+      <h2 class="classSelect">Ваш результат {{ result_dict.mark }}</h2>
+    {% if result_dict.errors %}
+          <table class="table table-dark">
+            <thead>
+              <tr>
+                <th scope="col">Вопрос</th>
+                <th class="col">Правильный ответ</th>
+                <th class="col">Ваш ответ</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for error in result_dict.errors %}
+              <tr>
+                  {% for er in error %}
+                    <td>{{ er }}</td>
+                  {% endfor %}
+              </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <label class="classSelect">У вас нет ошибок :)</label>
+    {% endif %}
+      <a class="btn btn-outline-light me-2" href="/all_courses"> Вернуться к выбору курса </a>
+</div>
+
+{% endblock %}

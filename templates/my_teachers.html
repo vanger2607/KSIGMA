@@ -1,0 +1,20 @@
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/list-groups.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="list-group list-group">
+    <h2>Ваши учителя</h2>
+    {% if teachers %}
+        {% for teacher in teachers %}
+            <h4> {{ teacher.name }} {{ teacher.surname }} </h4>
+        {% endfor %}
+    {% else %}
+        <h4> У вас ещё нет учителей, попросите их выбрать вас </h4>
+    {% endif %}
+
+    <a class="btn btn-outline-light me-2" href="/student_profile"> Назад </a>
+</div>
+{% endblock %}

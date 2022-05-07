@@ -1,29 +1,44 @@
-{% extends "index.html" %}
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/form.css') }}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-    <h1>Авторизация</h1>
-    <form action="" method="post">
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.email.label }}<br>
-            {{ form.email(class="form-control", type="email") }}<br>
+<div class="text-center form-signin">
+  <form method="post" >
+    {{ form.hidden_tag() }}
+    <h1 class="h3 mb-3 fw-normal">Авторизация</h1>
+      <div class="form-floating text-white bg-dark">
+        {% if message %}
+            {{ form.email(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.email.label }}
             {% for error in form.email.errors %}
-                <div class="alert alert-danger" role="alert">
-                    {{ error }}
-                </div>
+              <div class="invalid-feedback">
+                {{ error }}
+              </div>
             {% endfor %}
-        </p>
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(class="form-control", type="password") }}<br>
-            {% for error in form.password.errors %}
-                <div class="alert alert-danger" role="alert">
-                    {{ error }}
-                </div>
-            {% endfor %}
-        </p>
-        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
-        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-        <div>{{ message }}</div>
-    </form>
+        {% else %}
+            {{ form.email(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.email.label }}
+        {% endif %}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {% if message %}
+            {{ form.password(class="form-control", class="form-control is-invalid bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.password.label }}
+        {% else %}
+            {{ form.password(class="form-control", class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+            {{ form.password.label }}
+        {% endif %}
+      </div>
+      {% if message %}
+        <h5>
+            {{ message }}
+        </h5>
+      {% endif %}
+    {{ form.remember_me() }} {{ form.remember_me.label }}
+    {{ form.submit(type="submit", class="w-100 btn btn-lg btn-primary") }}
+  </form>
+</div>
 {% endblock %}

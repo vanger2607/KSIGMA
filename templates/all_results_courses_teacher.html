@@ -1,0 +1,19 @@
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/list-groups.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="list-group list-group">
+    <h3>Выберите курс для просмотра результатов учеников</h3>
+    {% if courses %}
+        {% for course in courses%}
+            <a href="/all_results_lessons_teacher/{{ course.id }}/" class="btn btn-outline-light me-2"> {{ course.name }} </a>
+        {% endfor %}
+    {% else %}
+        <h4>У вас ещё нет курсов </h4>
+    {% endif %}
+    <a class="btn btn-outline-light me-2" href="/teacher_profile"> Назад </a>
+</div>
+{% endblock %}

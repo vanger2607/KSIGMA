@@ -1,9 +1,23 @@
-{% extends "index.html" %}
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/list-groups.css') }}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<a href="{{base_url}}/create_lesson" class="gradient-button"> создание уроков</a>
-<a href="{{base_url}}/create_course" class="gradient-button"> создание курсов</a>
-<a href="{{base_url}}/change_lesson" class="gradient-button"> внесение изменений в уроки</a>
-<a href="{{base_url}}/change_course" class="gradient-button"> внесение изменений в курсы</a>
-
+<div class="list-group list-group">
+    {% if user.courses %}
+        <a href="/create_lesson" class="list-group-item py-3 text-white bg-dark"> создание уроков</a>
+    {% else %}
+        <p class="list-group-item py-3 text-white bg-dark" title="У вас пока нет курсов, создайте их сначала">создание уроков</p>
+    {% endif %}
+    <a href="/create_course" class="list-group-item py-3 text-white bg-dark"> создание курсов</a>
+    <a href="/change_lessons_courses" class="list-group-item py-3 text-white bg-dark"> внесение изменений в уроки</a>
+    <a href="/change_courses" class="list-group-item py-3 text-white bg-dark"> внесение изменений в курсы</a>
+    <a href="/teacher_students_add" class="list-group-item py-3 text-white bg-dark"> выбрать своих учеников </a>
+    <a href="/teacher_students" class="list-group-item py-3 text-white bg-dark"> мои ученики </a>
+    <a href="/teacher_students_add_course" class="list-group-item py-3 text-white bg-dark"> выдать курс ученику </a>
+    <a href="/teacher_students_remove_course" class="list-group-item py-3 text-white bg-dark"> забрать курс у ученика </a>
+    <a href="/all_results_courses_teacher" class="list-group-item py-3 text-white bg-dark"> Результаты моих учеников  </a>
+</div>
 {% endblock %}

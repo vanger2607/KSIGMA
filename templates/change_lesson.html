@@ -1,0 +1,59 @@
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+<link href="{{ url_for('static', filename='css/form.css') }}" rel="stylesheet" xmlns="http://www.w3.org/1999/html">
+{% endblock %}
+
+{% block content %}
+<div class="text-center form-signin">
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <h1 class="h3 mb-3 fw-normal">Создание урока</h1>
+      <div class="form-floating text-white bg-dark">
+        {{ form.text_name(class="form-control bg-dark text-white", placeholder="имя@пример.com", value=lesson.name) }}
+        {{ form.text_name.label }}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        <select name="courses" id="courses" class="form-control bg-dark text-white">
+            {% for course in courses %}
+                <option class="form-control bg-dark text-white" {% if course.id == lesson.course_id %}selected{% endif %} value="course_{{ course.id }}">{{ course.name }}</option>
+            {% endfor %}
+        </select>
+        <label for="courses">Выберите курс</label>
+      </div>
+      {{ error }}
+
+        {% if error %}
+            <div class="invalid-feedback"> {{ error }} </div>
+        {% endif %}
+      <p></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Вопрос задания</th>
+                    <th>Правильный ответ</th>
+                </tr>
+            </thead>
+                <tbody>
+                {% for task in lesson.tasks %}
+                    <tr>
+                        <td><input class="form-control bg-dark text-white" type="text" value="{{ task.question }}" size="40" id="old_task_{{ task.id }}" name="old_task_{{ task.id }}" ></td>
+                        <td><input class="form-control bg-dark text-white" type="text" value="{{ task.answers }}" size="40" id="old_answer_{{ task.id }}" name="old_answer_{{ task.id }}" ></td>
+                    </tr>
+                {% endfor %}
+                {% for num in range(10 - lesson.tasks|length) %}
+                    <tr>
+                        <td><input class="form-control bg-dark text-white" type="text" size="40" id="task_{{ num }}" name="task_{{ num }}" ></td>
+                        <td><input class="form-control bg-dark text-white" type="text" size="40" id="answer_{{ num }}" name="answer_{{ num }}" ></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p></p>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Сохранить</button>
+        <p></p>
+        <a class="btn btn-outline-light me-2" href="/teacher_profile">Вернуться</a>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,41 +1,55 @@
-{% extends "index.html" %}
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/list-groups.css') }}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-
-
-<div class="w3-container" id="table">
-    <div id="statusbar" class="">Course was created</div>
-    <label class="classSelect">фильтр по предметам</label>
+<div class="list-group list-group">
+    <h2>Мои курсы</h2>
+    <h5>Фильтр по предметам</h5>
+    <p></p>
     <form method="post">
-        <select class="form-control" name="filter" onchange='reload(this)'>
-            {% for object in objects %}
-                {% if object == object_now %}
-                    <option value="{{object.name}}" selected="selected">{{ object.name }}</option>
-                {% else %}
-                    <option value={{object.name}}> {{ object.name }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-        <input type="submit" value="Выбрать фильтр">
+        <div class="form-floating text-white bg-dark">
+            <select name="filter" onchange='reload(this)' class="form-control bg-dark text-white">
+                {% for object in objects %}
+                    {% if object == object_now %}
+                        <option value="{{object.name}}" selected="selected" class="form-control bg-dark text-white">{{ object.name }}</option>
+                    {% else %}
+                        <option value={{object.name}} class="form-control bg-dark text-white"> {{ object.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <p></p>
+        <input type="submit" value="Выбрать фильтр" class="w-100 btn btn-lg btn-primary">
     </form>
+    <p></p>
     {% if courses %}
-        <table class="tasks_table" id="s">
+        <table>
             <thead>
-            <tr>
-                <th class="table_header">Название курсов</th>
-            </tr>
+                <tr>
+                    <th class="table_header">Название курсов</th>
+                </tr>
             </thead>
             <tbody>
             {% for course in courses %}
-            <tr>
-                <td><a href="/course/{{ course.id }}">{{ course.name }}</a></td>
-            </tr>
+                <tr>
+                    <td><a href="/course/{{ course.id }}" class="w-100 btn btn-lg btn-primary">{{ course.name }}</a></td>
+                </tr>
             {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <label class="classSelect">Таких курсов у вас ещё нет</label>
+        <table class="tasks_table" id="s">
+            <thead>
+                <tr>
+                    <th class="table_header">Таких курсов у вас ещё нет</th>
+                </tr>
+            </thead>
+        </table>
     {% endif %}
+    <p></p>
+    <a class="w-100 btn btn-lg btn-primary" href="/student_profile"> Назад </a>
 </div>
-
 {% endblock %}

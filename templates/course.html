@@ -1,7 +1,20 @@
-{% extends "index.html" %}
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/list-groups.css') }}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-  {% for lesson in lessons %}
-      <a href="/pass_task/{{ lesson.id }}">{{ lesson.name }}</a><br><br>
-  {% endfor %}
+<div class="list-group list-group">
+    <h3>Выберите урок для прохождения </h3>
+    {% if lessons %}
+        {% for lesson in lessons %}
+            <a href="/pass_task/{{ lesson.id }}/" class="btn btn-outline-light me-2"> {{ lesson.name }} </a>
+        {% endfor %}
+    {% else %}
+        <h4> В этом  курсе ещё нет уроков </h4>
+    {% endif %}
+    <p></p>
+    <a class="btn btn-outline-light me-2" href="/all_courses"> Назад </a>
+</div>
 {% endblock %}

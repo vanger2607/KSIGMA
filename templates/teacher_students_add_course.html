@@ -1,0 +1,27 @@
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/list-groups.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="list-group list-group">
+    <h2> Выберите ученика и курс </h2>
+
+    <form method="post">
+        <select name="course" id="course">
+            {% for course in courses %}
+                <option value="course_{{ course.id }}">{{ course.name }}</option>
+            {% endfor %}
+        </select>
+        {% for student in students %}
+            <div>
+                <input type="checkbox" id="student_{{ student.id }}" value="student_{{ student.id }}" name="student_{{ student.id }}">
+                <label for="student_{{ student.id }}">{{ student.name }}</label>
+            </div>
+        {% endfor %}
+        <button class="btn btn-outline-light me-2" type="submit">Выдать</button>
+        <a class="btn btn-outline-light me-2" href="/teacher_profile">Вернуться</a>
+    </form>
+</div>
+{% endblock %}

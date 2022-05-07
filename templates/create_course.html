@@ -1,16 +1,27 @@
-{% extends "index.html" %}
+{% extends "core/base.html" %}
+
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/form.css') }}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-
-
-<div class="w3-container" id="table">
-    <form method="post">
-        {{ form.hidden_tag() }}
-        {% for field in form %}
-            {{ field }}
-        {% endfor %}
-        <button class="form-button" type="submit">Создать</button>
-    </form>
+<div class="text-center form-signin">
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <h1 class="h3 mb-3 fw-normal">Создание курса</h1>
+      <div class="form-floating text-white bg-dark">
+        {{ form.text_name(class="form-control bg-dark text-white", placeholder="имя@пример.com") }}
+        {{ form.text_name.label }}
+      </div>
+      <div class="form-floating text-white bg-dark">
+        {{ form.object(class="form-control bg-dark text-white") }}
+        {{ form.object.label }}
+      </div>
+    <p></p>
+    <button class="w-100 btn btn-lg btn-primary" type="submit">Создать</button>
+    <p></p>
+    <a class="btn btn-outline-light me-2" href="/teacher_profile">Вернуться</a>
+  </form>
 </div>
 
 {% endblock %}

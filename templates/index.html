@@ -1,120 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <style>
-    html,
-    body{height: 100%}
-  .right {
-  text-align: left;
-  color: white;
-  font-size: 36px;
-  }
-  .container-fluid{background-color:#699bdd;
-  width: 100%}
-  .text-right{color:white;
-  font-size:26px;}
-  .wrapper{min-height: 100%;
-  display: flex;
-  flex-direction:column;}
-  .main {
-  flex: 1 1 auto;}
-  .footer{background: #699bdd;}
-  .gradient-button {
-  text-decoration: None;
-  display: inline-block;
-  color: white;
-  padding: 20px 30px;
-  margin: 10px 20px;
-  border-radius: 10px;
-  font-family: 'Montserrat', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  background-image: linear-gradient(to right, #9EEFE1 0%, #4830F0 51%, #9EEFE1 100%);
-  background-size: 200% auto;
-  box-shadow: 0 0 20px rgba(0, 0, 0, .1);
-  transition: .5s;
-}
-.gradient-button:hover {
-  background-position: right center;
-}
+{% extends "core/base.html" %}
 
+{% block not_default_static %}
+    <link href="{{ url_for('static', filename='css/form.css') }}" rel="stylesheet">
+{% endblock %}
 
-@media (max-width: 480px) {
-
-   .footer {
-      border-top: none;
-      border-bottom: none;
-      text-align: center;
-   }
-
-   .footer{
-      float: none;
-      margin-bottom: 20px;
-      width: 100%;
-      text-align: center;
-   }
-}
-
-    </style>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style_for_create_lessons.css')}}" >
-     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,600italic,700,700italic|Playfair+Display:400,700&subset=latin,cyrillic">
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.css">
-  <link rel="stylesheet" type="text/css" href="css/style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-            crossorigin="anonymous"></script>
-</head>
-<body>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
-        integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
-        crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
-        integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
-        crossorigin="anonymous"></script>
-<div class="wrapper">
-    <header class="header">
-        <div class="container-fluid">
-            <nav class="navbar navbar-expand-lg">
-                <div class="container">
-                    <a href="/" class="navbar-brand">
-                        <img src="https://sun9-16.userapi.com/impg/bS_46eHsbbiPBZgdGf4KTElNQ1fA1RCt6ZB2wg/ht8WbWVKRp0.jpg?size=172x154&quality=96&sign=1ffe61f87c527f5294359204215517b7&type=album">
-                        <p1 class="right">КСИГМА</p1>
-                    </a>
-                </div>
-                <p class="text-right"> languages
-                    <br>maths</br>
-                    python</p>
-            </nav>
-        </div>
-    </header>
-    <main class="main">
-        {%block content%} {%endblock%}
-    </main>
-
-    <footer class="footer">
-        <p>
+{% block content %}
+<div class="px-4 py-5 my-5 text-center">
+    <h1 class="display-5 fw-bold">КСИГМА - путь к знаниям</h1>
+    <div class="col-lg-6 mx-auto">
+      <p class="lead mb-4">Этот сайт создан для упрощения электронного обучения как учителям, так и детям. Минималестичный дизайн позволяет вам легко разобраться в сайте, и начать в нём работу. В первую очередь наш сайт направлен на обычных школьников и учителей.</p>
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
         {% if current_user.is_authenticated %}
-            <a class="btn btn-primary" href="/logout">Выход</a>
-            {% if current_user.is_teacher %}
-                <a class="btn btn-primary" href="/teacher_profile"> Личный кабинет</a>
-            {% else %}
-                <a class="btn btn-primary" href="/student_profile"> Личный кабинет</a>
-            {% endif %}
+            <h4>Скорее приступай к работе: </h4>
+          {% if current_user.is_teacher %}
+            <a class="btn btn-outline-light me-2" href="/teacher_profile"> Личный кабинет</a>
+          {% else %}
+            <a class="btn btn-outline-light me-2" href="/student_profile"> Личный кабинет</a>
+          {% endif %}
         {% else %}
-            <a class="btn btn-primary " href="/reqister_student">Зарегистрироваться учеником</a>
-            <a class="btn btn-primary " href="/register_teacher">Зарегистрироваться учителем</a>
-            <a class="btn btn-success" href="/login">Войти</a>
+            <h4>Скорее регистрируйся: </h4>
+            <a class="btn btn-outline-light me-2" href="/reqister_student">Зарегистрироваться учеником</a>
+            <a class="btn btn-outline-light " href="/register_teacher">Зарегистрироваться учителем</a>
         {% endif %}
-        </p>
-    </footer>
+      </div>
+    </div>
 </div>
-</body>
-</html>
+
+{% endblock %}
