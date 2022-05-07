@@ -98,41 +98,7 @@
         statusbar.className = "error";
     };
 
-    function DeleteTask(year, month, day, id, title) {
-        if (confirm("Remove task '" + title + "'?") == true) {
-            ShowStatusbar();
-            fetch("{{ base_url }}/{{ calendar_id }}/" + year + "/" + month + "/" + day + "/" + id + "/",
-              {
-                method: "delete",
-                credentials: "include"
-              })
-            .then(response => {
-                if (response.status == 200) {
-                    location.reload();
-                } else {
-                    SetErrorStatusbar();
-                }
-            });
-        }
-    };
 
-    function DeleteTaskOcurrence(year, month, day, id, title) {
-        if (confirm("Hide task ocurrence of '" + title + "'?") == true) {
-            ShowStatusbar();
-            fetch("{{ base_url }}/{{ calendar_id }}/" + year + "/" + month + "/" + day + "/" + id + "/hide/",
-              {
-                method: "post",
-                credentials: "include"
-              })
-            .then(response => {
-                if (response.status == 200) {
-                    location.reload();
-                } else {
-                    SetErrorStatusbar();
-                }
-            });
-        }
-    }
 
     function readViewPastTasksSetting() {
         var targetName = "ViewPastTasks",
@@ -156,94 +122,7 @@
         location.reload();
     };
 
-    function DragEnd() {
-        moving = false;
-        capturedMovementOffset = false;
-        movingElement.onmouseup = null;
-        movingElement.onmousemove = null;
 
-        if (movingElement === null) {
-            return;
-        }
-
-        Array.from(document.getElementsByClassName("day")).forEach(function(element) {
-            if (element.className === "day") {
-                var movingElementX = parseInt(movingElement.style.left.slice(0, -2)) + movingElement.clientWidth / 2;
-                var movingElementY = parseInt(movingElement.style.top.slice(0, -2)) + movingElement.clientHeight / 2;
-                if (element.offsetLeft <= movingElementX &&
-                    movingElementX <= (element.offsetLeft + element.clientWidth) &&
-                    element.offsetTop <= movingElementY &&
-                    movingElementY <= (element.offsetTop + element.clientHeight)) {
-
-                    if (movingElement.getAttribute("data-day") !== element.getAttribute("data-day")) {
-                        var oldYear = movingElement.getAttribute("data-year");
-                        var oldMonth = movingElement.getAttribute("data-month");
-                        var oldDay = movingElement.getAttribute("data-day");
-                        var newDay = element.getAttribute("data-day");
-                        element.children[1].appendChild(movingElement);
-                        movingElement.setAttribute("data-day", newDay);
-
-                        var editTaskButton;
-                        if (movingElement.children[0].className === "time") {
-                            movingElement.children[1].children[0].setAttribute("data-day", newDay);
-                            editTaskButton = movingElement.children[1].children[movingElement.children[1].children.length - 1];
-                        } else {
-                            movingElement.children[0].children[0].setAttribute("data-day", newDay);
-                            editTaskButton = movingElement.children[0].children[movingElement.children[0].children.length - 1];
-                        }
-
-                        var url = editTaskButton.href;
-                        var urlFragments = url.split("/");
-                        urlFragments[urlFragments.length - 2] = newDay;
-                        editTaskButton.href = urlFragments.join("/");
-                        ShowStatusbar();
-                        fetch("{{ base_url }}/{{ calendar_id }}/" + oldYear + "/" + oldMonth + "/" + oldDay + "/" +
-                              movingElement.getAttribute("data-id") + "/",
-                          {
-                            method: "put",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            credentials: "include",
-                            body: newDay
-                          })
-                        .then(response => {
-                            if (response.status == 200) {
-                                HideStatusbar();
-                            } else {
-                                SetErrorStatusbar();
-                            }
-                        });
-
-                    }
-                }
-            }
-        });
-        resetMovingTimeout();
-        movingElement.style.position = null;
-        movingElement.style.width = null;
-        movingElement.style.left = null;
-        movingElement.style.top = null;
-        movingElement = null;
-    };
-
-    function Dragging(e) {
-        if (moving) {
-            if (!capturedMovementOffset) {
-                x = e.offsetX;
-                y = e.offsetY;
-                capturedMovementOffset = true;
-            }
-            posx = e.pageX - x;
-            posy = e.pageY - y;
-            this.style.left = posx + 'px';
-            this.style.top = posy + 'px';
-            if (movingTimeout) {
-                resetMovingTimeout();
-            }
-            movingTimeout = window.setTimeout(DragEnd, 1500);
-        }
-    };
 
     function resetMovingTimeout() {
         window.clearTimeout(movingTimeout);

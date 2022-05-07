@@ -4,6 +4,7 @@ BASE_URL = "superksigma.ru"
 SENDER_EMAIL = "superksigma@yandex.ru"
 PASSWORD_EMAIL = 'Alexor_2023'
 SUBJECTS = ['Maths', 'Russian', 'English']
+SUBJECTS_ID = ['1', '2', '3']
 MIN_YEAR = 2017
 DB_NAME = 'Site.db'
 MAX_YEAR = 2200

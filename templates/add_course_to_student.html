@@ -1,0 +1,120 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+
+<div class="w3-container" id="table">
+    <div id="statusbar" class="">Course was created</div>
+    <label form="classSelect">фильтр по предметам</label>
+    <select class="form-control" name="filter" onchange='new_obj(this)'>
+        {% for object in objects %}
+        {% if object== object_now%}
+        <option value="{{objects_id[loop.index - 1]}}" selected="selected">{{object}}</option>
+        {% else %}
+        <option value="{{objects_id[loop.index - 1]}}"> {{object}}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    <table class="tasks_table" id="s">
+        <thead>
+        <tr>
+            <th class="table_header">Course_name</th>
+        </tr>
+        </thead>
+        <tbody class="q">
+        {% for course in courses%}
+        <tr class="oh">
+            <td data-value="{{courses_id[loop.index -1]}}" onclick="testFunction(this)">{{course}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="w3-container" , id="task">
+    <p></p>
+    <select class="form-control" name="filter" onchange='reload(this)'>
+        {% for student_id in students_id %}
+        {% if student_id == student_now %}
+        <option id="course_name"value="{{student_id}}" selected="selected">{{students[loop.index - 1]}}</option>
+        {% else %}
+        <option value="{{student_id}}"> {{students[loop.index - 1]}}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    <br>
+    <ol id="ol" class="tasks_correct">
+        {%if courses_st != "None"%}
+        {% for course in courses_st %}
+        <li id="{{course}}" value="{{courses_id[loop.index - 1]}}" onclick='remove_it(id)' class="good" >{{course}}</li>
+        {% endfor %}
+        {%endif%}
+    </ol>
+    <input class="form-button" type="submit" value="Save" onclick="save()"/>
+</div>
+
+<script>
+function testFunction(elem) {
+    let liFirst = document.createElement('li');
+    liFirst.innerHTML = elem.textContent
+    liFirst.id = elem.textContent
+    var elem_id = elem.textContent
+    liFirst.setAttribute('class', 'good')
+    liFirst.setAttribute('value', elem.getAttribute('data-value'))
+    liFirst.setAttribute('onclick', 'remove_it("'+elem_id+'")');
+  ol.prepend(liFirst);
+}
+
+
+function remove_it(elem_id){document.getElementById(elem_id).remove();}
+
+async function save(){const formData = new FormData();
+var val = document.getElementById('course_name').value;
+var a = Array.from(document.getElementsByClassName("good"));
+var lst = []
+a.forEach(function(element){lst.push(element.value);});
+formData.append('array', lst)
+formData.append('name', val)
+const response = fetch("{{base_url}}/" + "adding_course", {method: 'POST',
+body: formData})
+.then(function(response) {
+  return response.text()
+}).then(async function(text) {
+ ShowStatusbar();
+await sleep(3 * 1000);
+HideStatusbar();
+});
+}
+function new_obj(filter_name){lst = fetch("{{base_url}}/help_add_course/"+ filter_name.value + "/")
+.then(function(response) {
+  return response.json()
+}).then(function(json){lst = json["lst"];
+lessons = document.querySelectorAll('.oh');
+for(const name of lessons){name.remove();}
+for(const lesson of lst){let liFirst = document.createElement('tr');
+liFirst.setAttribute('class', 'oh')
+liFirst.setAttribute('id', 'kk')
+     $('#s tbody').prepend(liFirst);
+     tb = document.createElement('td');
+     tb.innerHTML = lesson
+     tb.setAttribute("data", lesson)
+     tb.setAttribute("onclick", 'testFunction(this)')
+    tb.data = lesson
+    $('#s tbody > #kk').prepend(tb)
+    document.getElementById("kk").id = "";};})
+}
+function ShowStatusbar() {
+        document.getElementById("statusbar").className = "processing";
+    };
+
+    function HideStatusbar() {
+        document.getElementById("statusbar").className = "";
+    }
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+function reload(filter_name){window.location = "{{base_url}}/add_course_to_student/"+ filter_name.value + "/";
+}
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,34 @@
+{
+    "1": {
+        "student_answers": [
+            "жить"
+        ],
+        "correct": "incorrect"
+    },
+    "3": {
+        "student_answers": [
+            "5",
+            "Friday"
+        ],
+        "correct": "correct"
+    },
+    "4": {
+        "student_answers": [
+            " 5"
+        ],
+        "correct": "correct"
+    },
+    "2": {
+        "student_answers": [
+            "я"
+        ],
+        "correct": "incorrect"
+    },
+    "10": {
+        "student_answers": [
+            "0,5",
+            "2"
+        ],
+        "correct": "incorrect"
+    }
+}

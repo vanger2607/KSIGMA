@@ -24,7 +24,7 @@
         <tbody>
         {% for task in tasks%}
         <tr>
-            <td data="{{task}}" onclick="handlerClick(this)">{{task}}</td>
+            <td class="{{task}}" data-value="{{tasks_id[loop.index - 1]}}" onclick="handlerClick(this)">{{task}}</td>
         </tr>
         {% endfor %}
         </tbody>
@@ -60,7 +60,7 @@ function testFunction(elem) {
 }
 function r(elem)
 {timerId = clearTimeout(timerId);
-var win=window.open("{{base_url}}/view_task/" + elem.textContent + "/");
+var win=window.open("{{base_url}}/view_task/" + elem.getAttribute('data-value') + "/");
 }
 
 function remove_it(elem_id){document.getElementById(elem_id).remove();}

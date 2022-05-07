@@ -1,0 +1,43 @@
+{
+    "1": {
+        "student_answers": [
+            "нет"
+        ],
+        "correct": "correct"
+    },
+    "3": {
+        "student_answers": [
+            "5",
+            "не знаю"
+        ],
+        "correct": "incorrect"
+    },
+    "9": {
+        "student_answers": [
+            "123456789",
+            "много",
+            "человек"
+        ],
+        "correct": "incorrect"
+    },
+    "4": {
+        "student_answers": [
+            "7"
+        ],
+        "correct": "incorrect"
+    },
+    "2": {
+        "student_answers": [
+            "мои одноклассники"
+        ],
+        "correct": "incorrect"
+    },
+    "10": {
+        "student_answers": [
+            "3",
+            "0,5",
+            "4"
+        ],
+        "correct": "incorrect"
+    }
+}

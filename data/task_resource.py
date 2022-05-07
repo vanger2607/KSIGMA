@@ -5,7 +5,7 @@ from flask import current_app, redirect
 from flask_restful import Resource, reqparse
 
 from calendar_data import CalendarData
-from help_function import get_calendar_id_by_name, get_student_name_by_id
+from help_function import get_calendar_id_by_name, get_student_name_by_id, get_calendar_name_by_id
 
 parser = reqparse.RequestParser()
 parser.add_argument('title')
@@ -29,7 +29,6 @@ parser.add_argument('repetition_value')
 class Task(Resource):
     @staticmethod
     def post(calendar_id):
-        student = get_student_name_by_id(get_calendar_id_by_name(calendar_id))
         args = parser.parse_args()
         title = args["title"].strip()
         startdate = args["date"]
@@ -77,7 +76,7 @@ class Task(Resource):
         for date_tuple in dates_to_create:
             year, month, day = date_tuple
             calendar_data.create_task(
-                calendar_id=calendar_id,
+                calendar_id=get_calendar_name_by_id(calendar_id),
                 year=year,
                 month=month,
                 day=day,
@@ -92,4 +91,4 @@ class Task(Resource):
                 repetition_subtype=repetition_subtype,
                 repetition_value=repetition_value,
             )
-        return redirect('/teacher_calendar/' + student)
+        return redirect('/teacher_calendar/' + calendar_id)

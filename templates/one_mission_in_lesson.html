@@ -1,0 +1,188 @@
+{% extends "index.html" %}
+{% block content %}
+
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style_for_student_tasks.css')}}" >
+</head>
+<script>function check_answer(){var arr =[];
+if ("{{clever(task)[2]}}" == "open"){let answers = document.getElementsByClassName("open_answer");
+for (answer of answers){
+arr.push(answer.value);}}
+else if ("{{clever(task)[2]}}" == "radio-buttons"){
+let answers =  document.getElementsByClassName("form-check-input radio-button");
+for (answer of answers){ if(answer.checked){
+arr.push(answer.value);}}}
+else {let answers = document.getElementsByClassName("form-check-input check-box");
+for (answer of answers){
+if(answer.checked){
+arr.push(answer.value)};}}
+const formData = new FormData();
+formData.append("student_answers", arr.join(';'));
+formData.append("task_id", "{{task}}");
+fetch("{{base_url}}/check_answer/{{current_user.id}}",{method: 'POST',
+body: formData}).then(function(){
+window.location.reload()})}
+</script>
+{%if correct == None %}
+<div class="sidenav">
+{% for i in tasks %}
+<a href="{{base_url}}/mission_in/{{lesson}}/{{i}}/" class="gradient-button"   id="{{task}}"> {{clever(i)[0]}}</a>
+{% endfor %}
+        </div>
+
+<div id="c" class="container">
+    <div class="w3-container">
+        {% if clever(task)[2]== "open" %}
+        {% for question in clever(task)[1].split(";") %}
+        <div class="question">{{question}}</div>
+        <input type="text" class="open_answer">
+        {%endfor%}
+            <br>
+        {% elif clever(task)[2] == "radio-buttons" %}
+        <div class="question">{{clever(task)[1][0]}}</div>
+        {% for variation in clever(task)[3].split(";") %}
+
+        <input class="form-check-input radio-button" type="radio" value="{{variation}}" name="answers">
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {% elif clever(task)[2] == "check-boxes"%}
+            <div class="question">{{clever(task)[1][0]}}</div>
+            {% for variation in clever(task)[3].split(";") %}
+        <input class="form-check-input check-box" type="checkbox" value="{{variation}}" name="answerss">
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {%endif%}
+            <br>
+        <div class="gradient-button" ondblclick="check_answer()">Ответить</div>
+    </div>
+</div>
+{%endif%}
+{%if correct == "incorrect"%}
+<div class="sidenav">
+{% for i in tasks %}
+<a href="{{base_url}}/mission_in/{{lesson}}/{{i}}/" class="gradient-button"   id="{{task}}"> {{clever(i)[0]}}</a>
+{% endfor %}
+        </div>
+<div id="c" class="container">
+    <div class="w3-container">
+        {% if clever(task)[2]== "open" %}
+        {% for question in clever(task)[1].split(";") %}
+        <div class="question">{{question}}</div>
+        {% if student_answers[loop.index - 1] != correct_answers[loop.index - 1]%}
+        <p>Ваш ответ:<input type="text" class="incorrect-answer-open" placeholder="{{student_answers[loop.index - 1]}}" disabled="disabled"></p>
+        <p>Правильный ответ:
+            <input type="text" class="correct-answer-open" placeholder="{{correct_answers[loop.index - 1]}}" disabled="disabled"></p>
+        {% elif student_answers[loop.index - 1] == correct_answers[loop.index - 1]%}
+        <input type="text" class="correct-answer-open" placeholder="{{correct_answers[loop.index - 1]}}" disabled="disabled">
+        {%endif%}
+        {%endfor%}
+        {% elif clever(task)[2] == "radio-buttons" %}
+        <div class="question">{{clever(task)[1][0]}}</div>
+
+        {% for variation in clever(task)[3].split("; ") %}
+
+        {%if student_answers[0] == variation%}
+        {%if variation == correct_answers[0]%}
+             <input class="form-check-input correct-button" type="radio" value="{{variation}}" name="answers" checked="checked" readonly>
+        {%else%}
+        <input class="form-check-input incorrect-button" type="radio" value="{{variation}}" name="answers"  readonly >
+
+        {%endif%}
+        {%else%}
+        {%if variation == correct_answers[0]%}
+             <input class="form-check-input correct-button" type="radio" value="{{variation}}" name="answers" checked="checked" readonly>
+        {%else%}
+        <input class="form-check-input button" type="radio" value="{{variation}}" name="answers" readonly>
+        {%endif%}
+        {%endif%}
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {% elif clever(task)[2] == "check-boxes"%}
+            <div class="question">{{clever(task)[1][0]}}</div>
+           {% for variation in clever(task)[3].split("; ") %}
+
+        {%if variation in student_answers%}
+        {%if variation in correct_answers%}
+             <input class="custom-checkbox" type="checkbox" value="{{variation}}" name="answers" checked="checked" readonly>
+                 <label class="form-check-label" for="{{variation}}">
+        {%else%}
+        <input class="custom-checkbox3" type="checkbox" value="{{variation}}" name="answers" checked="checked" readonly >
+             <label class="form-check-label" for="{{variation}}">
+        {%endif%}
+        {%else%}
+        {%if variation in correct_answers%}
+                     <input class="custom-checkbox2" type="checkbox" value="{{variation}}" name="answers" checked="checked" readonly>
+                 <label class="form-check-label" for="{{variation}}">
+        {%else%}
+        <input class="form-check-input checkbox" type="checkbox" value="{{variation}}" name="answers" readonly>
+                      <label class="form-check-label" for="{{variation}}">
+        {%endif%}
+        {%endif%}
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {%endif%}
+        Задача решена неверно
+    </div>
+</div>
+{%endif%}
+{%if correct == "correct" %}
+<div class="sidenav">
+{% for i in tasks %}
+<a href="{{base_url}}/mission_in/{{lesson}}/{{i}}/" class="gradient-button"   id="{{task}}"> {{clever(i)[0]}}</a>
+{% endfor %}
+        </div>
+<div id="c" class="container">
+    <div class="w3-container">
+        {% if clever(task)[2]== "open" %}
+        {% for question in clever(task)[1].split(";") %}
+        <div class="question">{{question}}</div>
+        <input type="text" class="correct-answer-open" placeholder="{{correct_answers[loop.index - 1]}}" disabled="disabled">
+        {%endfor%}
+            <br>
+        {% elif clever(task)[2] == "radio-buttons" %}
+        <div class="question">{{clever(task)[1][0]}}</div>
+
+        {% for variation in clever(task)[3].split("; ") %}
+
+        {%if variation == correct_answers[0]%}
+        <input class="form-check-input correct-button" type="radio" value="{{variation}}" name="answers" checked="checked"  readonly>
+        {%else%}
+         <input class="form-check-input button" type="radio" value="{{variation}}" name="answers" readonly>
+        {%endif%}
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {% elif clever(task)[2] == "check-boxes"%}
+            <div class="question">{{clever(task)[1][0]}}</div>
+            {% for variation in clever(task)[3].split(";") %}
+        {%if variation in correct_answers%}
+        <input class="custom-checkbox2" type="checkbox" value="{{variation}}" name="answerss" readonly>
+        {%else%}
+        <input class="checkbox-normal" type="checkbox" value="{{variation}}" name="answerss" readonly>
+        {%endif%}
+        <label class="form-check-label" for="{{variation}}">
+            {{variation}}
+        </label>
+        <br>
+        {%endfor%}
+        {%endif%}
+        <p>Ваш ответ верный</p>
+    </div>
+</div>
+{%endif%}
+{% endblock %}

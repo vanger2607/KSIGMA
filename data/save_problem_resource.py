@@ -18,19 +18,15 @@ class SaveProblem(Resource):
             parser.add_argument('answers')
             args = parser.parse_args()
             questions = args['questions']
-            print(questions, '1')
-            if type(questions) == list:
-                questions = [i.replace('&39', '') for i in questions]
-                questions = ''.join(questions)
-            print(questions)
+            if ";" in questions:
+                questions = '; '.join([i.strip() for i in questions.split(';')])
             answers = args['answers']
-            if type(answers) == list:
-                answers = [i.replace('&39', '') for i in answers]
-                answers = ', '.join(answers)
+            if ";" in answers:
+                answers = '; '.join([i.strip() for i in answers.split(';')])
+            print(answers, questions)
             variations_of_answers = args['variations_of_answers']
-            if type(variations_of_answers) == list:
-                variations_of_answers = [i.replace('&39', '') for i in variations_of_answers]
-                ''.join(variations_of_answers)
+            if not(variations_of_answers is None) and ";" in variations_of_answers:
+                variations_of_answers = '; '.join([i.strip() for i in variations_of_answers.split(';')])
             if task_type == 'open':
                 db_sess = connect_to_db(config.DB_NAME)
                 task = SuperTasks(name=args['task_name'],
@@ -42,12 +38,13 @@ class SaveProblem(Resource):
                 db_sess.commit()
             elif task_type == 'radio-buttons' or task_type == 'check-boxes':
                 db_sess = connect_to_db(config.DB_NAME)
+
                 task = SuperTasks(name=args['task_name'],
                                   type_object=get_object_id_by_name(args['subject']),
                                   question=questions,
                                   type=task_type,
                                   answers=answers,
-                                  variations_of_answers= variations_of_answers)
+                                  variations_of_answers=variations_of_answers)
                 db_sess.add(task)
                 db_sess.commit()
             else:

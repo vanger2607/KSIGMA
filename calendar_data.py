@@ -7,8 +7,8 @@ from typing import Dict, Optional, cast
 
 from flask import current_app
 
-
 from gregorian_calendar import GregorianCalendar
+
 WEEK_START_DAY_MONDAY = 0
 KEY_TASKS = "tasks"
 KEY_USERS = "users"
@@ -18,7 +18,6 @@ KEY_REPETITIVE_HIDDEN_TASK = "hidden_repetition"
 
 
 class CalendarData:
-
     REPETITION_TYPE_WEEKLY = "w"
     REPETITION_TYPE_MONTHLY = "m"
     REPETITION_SUBTYPE_WEEK_DAY = "w"
@@ -30,13 +29,11 @@ class CalendarData:
         self.gregorian_calendar.setfirstweekday(first_weekday)
 
     def load_calendar(self, filename: str) -> Dict:
-        print(filename)
-        with open('calendars/'+filename) as file:
+        with open('calendars/' + filename) as file:
             contents = json.load(file)
         if type(contents) is not dict:
             raise ValueError("Error loading calendar from file '{}'".format(filename))
         return contents
-
 
     @staticmethod
     def is_past(year: int, month: int, current_year: int, current_month: int) -> bool:
@@ -51,11 +48,11 @@ class CalendarData:
         if not data or KEY_TASKS not in data:
             raise ValueError("Incomplete data for calendar")
         if not all(
-            [
-                KEY_NORMAL_TASK in data[KEY_TASKS],
-                KEY_REPETITIVE_TASK in data[KEY_TASKS],
-                KEY_REPETITIVE_HIDDEN_TASK in data[KEY_TASKS],
-            ]
+                [
+                    KEY_NORMAL_TASK in data[KEY_TASKS],
+                    KEY_REPETITIVE_TASK in data[KEY_TASKS],
+                    KEY_REPETITIVE_HIDDEN_TASK in data[KEY_TASKS],
+                ]
         ):
             raise ValueError("Incomplete data for calendar")
 
@@ -71,9 +68,9 @@ class CalendarData:
             month_str = str(day.month)
             year_str = str(day.year)
             if (
-                year_str in data[KEY_TASKS][KEY_NORMAL_TASK]
-                and month_str in data[KEY_TASKS][KEY_NORMAL_TASK][year_str]
-                and month_str not in tasks
+                    year_str in data[KEY_TASKS][KEY_NORMAL_TASK]
+                    and month_str in data[KEY_TASKS][KEY_NORMAL_TASK][year_str]
+                    and month_str not in tasks
             ):
                 tasks[month_str] = data[KEY_TASKS][KEY_NORMAL_TASK][year_str][month_str]
 
@@ -145,23 +142,23 @@ class CalendarData:
         return tasks
 
     def delete_task(
-        self,
-        calendar_id: str,
-        year_str: str,
-        month_str: str,
-        day_str: str,
-        task_id: int,
+            self,
+            calendar_id: str,
+            year_str: str,
+            month_str: str,
+            day_str: str,
+            task_id: int,
     ) -> None:
         deleted = False
         data = self.load_calendar(calendar_id)
 
         if (
-            year_str in data[KEY_TASKS][KEY_NORMAL_TASK]
-            and month_str in data[KEY_TASKS][KEY_NORMAL_TASK][year_str]
-            and day_str in data[KEY_TASKS][KEY_NORMAL_TASK][year_str][month_str]
+                year_str in data[KEY_TASKS][KEY_NORMAL_TASK]
+                and month_str in data[KEY_TASKS][KEY_NORMAL_TASK][year_str]
+                and day_str in data[KEY_TASKS][KEY_NORMAL_TASK][year_str][month_str]
         ):
             for index, task in enumerate(data[KEY_TASKS][KEY_NORMAL_TASK][year_str][month_str][day_str]):
-                if task["id"] == task_id:
+                if task["id"] == int(task_id):
                     data[KEY_TASKS][KEY_NORMAL_TASK][year_str][month_str][day_str].pop(index)
                     deleted = True
 
@@ -175,13 +172,13 @@ class CalendarData:
         self._save_calendar(data, filename=calendar_id)
 
     def update_task_day(
-        self,
-        calendar_id: str,
-        year_str: str,
-        month_str: str,
-        day_str: str,
-        task_id: int,
-        new_day_str: str,
+            self,
+            calendar_id: str,
+            year_str: str,
+            month_str: str,
+            day_str: str,
+            task_id: int,
+            new_day_str: str,
     ) -> None:
         data = self.load_calendar(calendar_id)
 
@@ -200,21 +197,21 @@ class CalendarData:
         self._save_calendar(data, filename=calendar_id)
 
     def create_task(
-        self,
-        calendar_id: str,
-        year: Optional[int],
-        month: Optional[int],
-        day: Optional[int],
-        title: str,
-        is_all_day: bool,
-        start_time: str,
-        details: str,
-        color: str,
-        has_repetition: bool,
-        repetition_type: Optional[str],
-        repetition_subtype: Optional[str],
-        repetition_value: int,
-        end_time: Optional[str] = None,
+            self,
+            calendar_id: str,
+            year: Optional[int],
+            month: Optional[int],
+            day: Optional[int],
+            title: str,
+            is_all_day: bool,
+            start_time: str,
+            details: str,
+            color: str,
+            has_repetition: bool,
+            repetition_type: Optional[str],
+            repetition_subtype: Optional[str],
+            repetition_value: int,
+            end_time: Optional[str] = None,
     ) -> bool:
         details = details if len(details) > 0 else "&nbsp;"
         data = self.load_calendar(calendar_id)
@@ -253,12 +250,12 @@ class CalendarData:
         return True
 
     def hide_repetition_task_instance(
-        self,
-        calendar_id: str,
-        year_str: str,
-        month_str: str,
-        day_str: str,
-        task_id_str: str,
+            self,
+            calendar_id: str,
+            year_str: str,
+            month_str: str,
+            day_str: str,
+            task_id_str: str,
     ) -> None:
         data = self.load_calendar(calendar_id)
 
@@ -303,13 +300,13 @@ class CalendarData:
                             continue
                         day_str = str(day)
                         if (
-                            task["repetition_type"] == self.REPETITION_TYPE_WEEKLY
-                            and not self._is_repetition_hidden_for_day(data, id_str, year_str, month_str, str(day))
-                            and task["repetition_value"] == weekday
+                                task["repetition_type"] == self.REPETITION_TYPE_WEEKLY
+                                and not self._is_repetition_hidden_for_day(data, id_str, year_str, month_str, str(day))
+                                and task["repetition_value"] == weekday
                         ):
                             self.add_task_to_list(repetitive_tasks, day_str, month_str, task)
                         elif task["repetition_type"] == self.REPETITION_TYPE_MONTHLY and not self._is_repetition_hidden(
-                            data, id_str, year_str, month_str
+                                data, id_str, year_str, month_str
                         ):
                             if task["repetition_subtype"] == self.REPETITION_SUBTYPE_WEEK_DAY:
                                 if task["repetition_value"] == weekday and not monthly_task_assigned:
@@ -325,9 +322,9 @@ class CalendarData:
     def _is_repetition_hidden_for_day(data: Dict, id_str: str, year_str: str, month_str: str, day_str: str) -> bool:
         if id_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK]:
             if (
-                year_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str]
-                and month_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str][year_str]
-                and day_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str][year_str][month_str]
+                    year_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str]
+                    and month_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str][year_str]
+                    and day_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str][year_str][month_str]
             ):
                 return True
         return False
@@ -336,8 +333,8 @@ class CalendarData:
     def _is_repetition_hidden(data: Dict, id_str: str, year_str: str, month_str: str) -> bool:
         if id_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK]:
             if (
-                year_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str]
-                and month_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str][year_str]
+                    year_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str]
+                    and month_str in data[KEY_TASKS][KEY_REPETITIVE_HIDDEN_TASK][id_str][year_str]
             ):
                 return True
         return False
@@ -348,7 +345,6 @@ class CalendarData:
             self._clear_past_hidden_entries(data)
 
         with open(os.path.join(".", self.data_folder, "{}".format('calendars/' + filename)), "w+") as file:
-            print(file)
             json.dump(data, file)
 
     @staticmethod

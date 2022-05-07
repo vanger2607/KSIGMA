@@ -9,7 +9,6 @@ body {
   position: relative;
   height: 256px;
   width: 456px;
-  overflow-x: hidden
   overflow: auto;
 
 }
@@ -57,8 +56,8 @@ overflow-x: hide;
         {%endif%}
 
         <br>
-        <a href="#" class="gradient-button", onclick="save({{questions}}, {{variations_of_answers}}, {{answers}})"> Готово</a>
-<a href="{{base_url}}/create_courses/None/" class="gradient-button"> Назад</a>
+        <a href="#" class="gradient-button", onclick="save('{{q}}', '{{vr}}', '{{ans}}')"> Готово</a>
+<a href="{{base_url}}/teacher/tasks" class="gradient-button"> Назад</a>
     </div>
 </div>
 <script>function save(questions, variations_of_answers, answers){

@@ -16,11 +16,11 @@
     <div class="header">
     <label for="classSelect">ученики</label>
                                         <select class="form-control" id="s" name="class" onchange='findOption()'>
-                                          {% for student in students %}
-                                            {% if student == username%}
-                                            <option value="{{student}}" selected="selected">{{student}}</option>
+                                          {% for student_id in students_id %}
+                                            {% if student_id == user_id %}
+                                            <option value="{{student_id}}" selected="selected">{{students[loop.index -1]}}</option>
                                             {% else %}
-                                            <option value={{student}}> {{student}}</option>
+                                            <option value={{student_id}}> {{students[loop.index -1]}}</option>
                                             {% endif %}
                                             {% endfor %}
                                         </select>
@@ -121,7 +121,7 @@
     function DeleteTask(year, month, day, id, title) {
         if (confirm("Remove task '" + title + "'?") == true) {
             ShowStatusbar();
-            fetch("{{ base_url }}/{{ calendar_id }}/" + year + "/" + month + "/" + day + "/" + id + "/",
+            fetch("{{ base_url }}/{{ calendar_id }}/" + year + "/" + month + "/" + day + "/" + id + "/"+ "delete_task" ,
               {
                 method: "delete",
                 credentials: "include"
@@ -306,8 +306,8 @@
             } else {
                 clearTimeout(clicksTimeout);
                 clicksCounter = 0;
-                window.location = "/{{ calendar_id }}/{{ year }}/{{ month }}/new_task?day=" +
-                                    eventData.target.getAttribute("data-day");
+                window.location = "{{base_url}}/make/{{ calendar_id }}/{{ year }}/{{ month }}/new_task/" +
+                                    eventData.target.getAttribute("data-day") + "/" + "new_calendar_task";
             }
             return;
         }
@@ -352,7 +352,6 @@
     function findOption() {
         var select = document.getElementById("s");
         var value = select.value;
-        alert(value);
         window.location = "{{base_url}}teacher_calendar/"+ value + "/";
 
 }

@@ -1,0 +1,288 @@
+
+#c {
+  position: relative;
+  items-align: center;
+  height: 450px;
+  width: 1250px;
+  overflow: auto;
+
+}
+.w3-container{
+position: absolute;
+items-align:center;
+left: 15%;
+margin-bottom: 2px;
+height: 100%;
+width: 100%;
+}
+input[class='form-check-input incorrect-button'],
+label {
+  cursor: pointer;
+}
+
+input[class='form-check-input incorrect-button'] {
+  position: relative;
+  height: 28px;
+  width: 28px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+}
+
+input[class='form-check-input incorrect-button']::checked {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 29px;
+  height: 29px;
+  border-radius: 100%;
+  transform: translate(-50%, -50%);
+  border: 4px solid red;
+}
+input[class="form-check-input correct-button"][readonly] {
+  pointer-events: none;
+}
+input[class="form-check-input incorrect-button"][readonly] {
+  pointer-events: none;
+}
+input[class="form-check-input checkbox"][readonly] {
+  pointer-events: none;
+}
+input[class="form-check-input correct-checkbox"][readonly] {
+  pointer-events: none;
+}
+input[class="form-check-input incorrect-checkbox"][readonly] {
+  pointer-events: none;
+}
+input[class="form-check-input button"][readonly] {
+  pointer-events: none;
+}
+input[type='radio'],
+label {
+  cursor: pointer;
+}
+
+input[type='radio'] {
+  position: relative;
+  height: 22px;
+  width: 22px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+}
+
+
+input[class="form-check-input incorrect-button"]:before{
+ content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: 2px solid red;
+}
+input[class='form-check-input correct-button']:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: 2px solid green;
+}
+ /* для элемента input c type="checkbox" */
+    .custom-checkbox {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+    }
+
+    /* для элемента label, связанного с .custom-checkbox */
+    .custom-checkbox+label {
+      display: inline-flex;
+      align-items: center;
+      user-select: none;
+    }
+
+    /* создание в label псевдоэлемента before со следующими стилями */
+    .custom-checkbox+label::before {
+      content: '';
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      flex-shrink: 0;
+      flex-grow: 0;
+      border: 1px solid #adb5bd;
+      border-radius: 0.25em;
+      margin-right: 0.5em;
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 50% 50%;
+    }
+
+    /* стили при наведении курсора на checkbox */
+    .custom-checkbox:not(:disabled):not(:checked)+label:hover::before {
+      border-color: #b3d7ff;
+    }
+
+    /* стили для активного чекбокса (при нажатии на него) */
+    .custom-checkbox:not(:disabled):active+label::before {
+      background-color: #b3d7ff;
+      border-color: #b3d7ff;
+    }
+
+    /* стили для чекбокса, находящегося в фокусе */
+    .custom-checkbox:focus+label::before {
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* стили для чекбокса, находящегося в фокусе и не находящегося в состоянии checked */
+    .custom-checkbox:focus:not(:checked)+label::before {
+      border-color: #80bdff;
+    }
+
+    /* стили для чекбокса, находящегося в состоянии checked */
+    .custom-checkbox:checked+label::before {
+    background-image: url('https://w7.pngwing.com/pngs/325/286/png-transparent-check-mark-symbol-black-check-mark-angle-text-triangle.png');
+      background-color: green;
+      border-color: green;
+      border-width: 3px;
+
+    }
+
+    /* стили для чекбокса, находящегося в состоянии disabled */
+    .custom-checkbox:disabled+label::before {
+      background-color: #e9ecef;
+    }
+ /* для элемента input c type="checkbox" */
+    .custom-checkbox2 {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+    }
+
+    /* для элемента label, связанного с .custom-checkbox */
+    .custom-checkbox2+label {
+      display: inline-flex;
+      align-items: center;
+      user-select: none;
+    }
+
+    /* создание в label псевдоэлемента before со следующими стилями */
+    .custom-checkbox2+label::before {
+      content: '';
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      flex-shrink: 0;
+      flex-grow: 0;
+      border: 1px solid #adb5bd;
+      border-radius: 0.25em;
+      margin-right: 0.5em;
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 50% 50%;
+    }
+.custom-checkbox2:checked+label::before {
+    background-image: url('https://w7.pngwing.com/pngs/325/286/png-transparent-check-mark-symbol-black-check-mark-angle-text-triangle.png');
+      border-color: green;
+      border-width: 3px;
+
+    }
+    .custom-checkbox3 {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+    }
+
+    /* для элемента label, связанного с .custom-checkbox */
+    .custom-checkbox3+label {
+      display: inline-flex;
+      align-items: center;
+      user-select: none;
+    }
+
+    /* создание в label псевдоэлемента before со следующими стилями */
+    .custom-checkbox3+label::before {
+      content: '';
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      flex-shrink: 0;
+      flex-grow: 0;
+      border: 1px solid #adb5bd;
+      border-radius: 0.25em;
+      margin-right: 0.5em;
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 50% 50%;
+    }
+.custom-checkbox3:checked+label::before {
+
+      border-color: red;
+      background-color: red;
+      background-image: url('https://w7.pngwing.com/pngs/325/286/png-transparent-check-mark-symbol-black-check-mark-angle-text-triangle.png');
+      border-width: 3px;
+
+    }
+.incorrect-answer-open{background-color: red}
+.correct-answer-open{border-radius: 1px;
+border-color: #A1D360;
+background-color: #A1D360;}
+::-webkit-input-placeholder { /* WebKit browsers */
+   color:    black;
+}
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+   color:    black;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+   color:    black;
+}
+:-ms-input-placeholder { /* Internet Explorer 10+ */
+   color:    black;
+}
+.sidenav {
+    width: 230px;
+    height: 60%;
+    position: fixed;
+    z-index: 1;
+    top: 25%;
+
+    left: 10px;
+    border-radius: 1px;
+    border-color: #699bdd;
+    overflow: auto;
+    padding: 8px 0;
+}
+
+.sidenav a {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 25px;
+    color: black;
+    display: block;
+}
+
+.sidenav a:hover {
+    color: #064579;
+}
+
+.main {
+    margin-left: 140px; /* Same width as the sidebar + left position in px */
+    font-size: 28px; /* Increased text to enable scrolling */
+    padding: 0px 10px;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
