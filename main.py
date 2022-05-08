@@ -293,7 +293,7 @@ def check_tasks():
             file = {}
             for i in files_s:
                 file[i.split('|')[0].strip().lower()] = i.split('|')[1].strip()
-            if 'variations_of_answers' in file and len(file['answers']) > 1:
+            if 'variations_of_answers' in file and ';' in file['answers']:
                 task_type = 'check-boxes'
                 if ';' not in file['questions']:
                     questions = [file['questions']]
@@ -306,7 +306,7 @@ def check_tasks():
                                        lesson_name=lesson_name, answers=answers,
                                        vr='; '.join(variations_of_answers),
                                        ans="; ".join(answers), q="; ".join(questions), base_url=config.BASE_URL)
-            elif 'variations_of_answers' in file and len(file['answers']) == 1:
+            elif 'variations_of_answers' in file and not(';' in file['answers']):
                 task_type = 'radio-buttons'
                 if ';' not in file['questions']:
                     questions = [file['questions']]
