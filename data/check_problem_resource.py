@@ -24,7 +24,7 @@ class CheckProblem(Resource):
         parser.add_argument('task_id')
         args = parser.parse_args()
         print(args['student_answers'])
-        if len(get_info_about_task_by_id(args["task_id"])) == 5:
+        if len(get_info_about_task_by_id(args["task_id"])) == 4:
             name, question, task_type, answers = get_info_about_task_by_id(args['task_id'])
 
         else:
