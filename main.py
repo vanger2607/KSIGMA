@@ -95,7 +95,7 @@ def handle_something_go_wrong(e):
 
 @application.route('/')
 def start():
-    return render_template('index.html', title='SuperKsigma')
+    return render_template('index.html', title='SuperKsigma', base_url=config.BASE_URL)
 
 
 @application.route('/register', methods=['GET', 'POST'])
@@ -105,16 +105,19 @@ def register():
         if form.password.data != form.password_again.data:
             return render_template('register.html', title='Регистрация',
                                    form=form,
-                                   message="Пароли не совпадают")
+                                   message="Пароли не совпадают",
+                                   base_url=config.BASE_URL)
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
             return render_template('register.html', title='Регистрация',
                                    form=form,
-                                   message="Такой пользователь уже есть")
+                                   message="Такой пользователь уже есть",
+                                   base_url=config.BASE_URL)
         if db_sess.query(User).filter(User.name == form.name.data).first():
             return render_template('register.html', title='Регистрация',
                                    form=form,
-                                   message="Такой никнейм уже есть, придумайте другой")
+                                   message="Такой никнейм уже есть, придумайте другой",
+                                   base_url=config.BASE_URL)
         user = User(
             name=form.name.data,
             email=form.email.data,
@@ -171,9 +174,9 @@ def register():
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="с почтой что-то не то, уведомление не придет, но Вы зарегистрированы,"
-                                           " нажмите войти")
+                                           " нажмите войти", base_url=config.BASE_URL)
         return redirect('/login')
-    return render_template('register.html', title='Регистрация', form=form)
+    return render_template('register.html', title='Регистрация', form=form, base_url=config.BASE_URL)
 
 
 @application.route('/login', methods=['GET', 'POST'])
@@ -191,8 +194,8 @@ def login():
             return resp
         return render_template('login.html',
                                message="Неправильный логин или пароль",
-                               form=form)
-    return render_template('login.html', title='Авторизация', form=form)
+                               form=form, base_url=config.BASE_URL)
+    return render_template('login.html', title='Авторизация', form=form, base_url=config.BASE_URL)
 
 
 @application.route('/logout')
@@ -268,7 +271,7 @@ def tasks():
     if is_teacher(current_user.get_id()):
         if request.method == 'GET':
             return render_template('teach_create_task.html',
-                                   title='Создание задачи', subjects=config.SUBJECTS)
+                                   title='Создание задачи', subjects=config.SUBJECTS, base_url=config.BASE_URL)
     else:
         abort(403)
 
@@ -302,7 +305,7 @@ def check_tasks():
                                        variations_of_answers=variations_of_answers, task_name=task_name,
                                        lesson_name=lesson_name, answers=answers,
                                        vr='; '.join(variations_of_answers),
-                                       ans="; ".join(answers), q="; ".join(questions))
+                                       ans="; ".join(answers), q="; ".join(questions), base_url=config.BASE_URL)
             elif 'variations_of_answers' in file and len(file['answers']) == 1:
                 task_type = 'radio-buttons'
                 if ';' not in file['questions']:
@@ -314,7 +317,7 @@ def check_tasks():
                 return render_template('teach_check.html', task_type=task_type, questions=questions,
                                        variations_of_answers=variations_of_answers, task_name=task_name,
                                        lesson_name=lesson_name, answers=answers, vr='; '.join(variations_of_answers),
-                                       ans="; ".join(answers), q="; ".join(questions))
+                                       ans="; ".join(answers), q="; ".join(questions), base_url=config.BASE_URL)
             else:
                 task_type = 'open'
                 if ';' not in file['questions']:
@@ -327,16 +330,16 @@ def check_tasks():
                 return render_template('teach_check.html', task_type=task_type, questions=questions,
                                        task_name=task_name,
                                        lesson_name=lesson_name, answers=answers, variations_of_answers='0',
-                                       ans="; ".join(answers), vr='0', q="; ".join(questions))
+                                       ans="; ".join(answers), vr='0', q="; ".join(questions),  base_url=config.BASE_URL)
 
         except KeyError:
             return render_template('teach_create_task.html',
                                    title='Создание задачи', subjects=config.SUBJECTS,
-                                   messages='Неверные данные в файле')
+                                   messages='Неверные данные в файле',  base_url=config.BASE_URL)
         except IndexError:
             return render_template('teach_create_task.html',
                                    title='Создание задачи', subjects=config.SUBJECTS,
-                                   messages='Неверные данные в файле')
+                                   messages='Неверные данные в файле',  base_url=config.BASE_URL)
     else:
         abort(404)
 
@@ -475,7 +478,7 @@ def view_task(task):
     else:
         questions = [questions]
     return render_template('view_task.html', task_type=task_type,
-                           questions=questions, variations_of_answers=variations_of_answers)
+                           questions=questions, variations_of_answers=variations_of_answers,  base_url=config.BASE_URL)
 
 
 @application.route('/lesson', methods=['POST'])
@@ -496,11 +499,11 @@ def create_cour(filter_name):
         if filter_name == 'None':
             lessons = all_lessons()
 
-            return (render_template('courses.html', title='Создание курсов',
-                                    lessons=lessons,
-                                    objects=config.SUBJECTS,
-                                    base_url=current_app.config["BASE_URL"],
-                                    object_now=filter_name, form=form))
+            return render_template('courses.html', title='Создание курсов',
+                                   lessons=lessons,
+                                   objects=config.SUBJECTS,
+                                   base_url=current_app.config["BASE_URL"],
+                                   object_now=filter_name, form=form, )
         else:
             lessons = get_lesson_names_by_object(filter_name)
             return render_template('courses.html', title='Создание курсов',
@@ -623,7 +626,7 @@ def changing_course():
 @application.route('/course_student')
 def course_from_student():
     return render_template('courses_student.html', title='курсы КСИГМЫ', subjects=config.SUBJECTS,
-                           subjects_id=config.SUBJECTS_ID)
+                           subjects_id=config.SUBJECTS_ID,  base_url=config.BASE_URL)
 
 
 @application.route('/course_student/<subject_id>/')
@@ -632,7 +635,8 @@ def course_in(subject_id):
 
     courses = get_courses_names_by_subject_id_and_student_id(lst, subject_id)
     courses_id = get_courses_id_by_subject_id_and_student_id(lst, subject_id)
-    return render_template('courses_in.html', title='курсы КСИГМЫ', courses=courses, courses_id=courses_id)
+    return render_template('courses_in.html', title='курсы КСИГМЫ', courses=courses, courses_id=courses_id,
+                           base_url=config.BASE_URL)
 
 
 @application.route('/course_student_lessons/<course_id>/')
@@ -641,7 +645,8 @@ def course_lessons_student(course_id):
     lessons_id = lessons.copy()
     lessons = [get_lesson_name_by_id(i) for i in lessons]
 
-    return render_template('lessons_in_courses_student.html', title='ДОМАШКА', lessons=lessons, lessons_id=lessons_id)
+    return render_template('lessons_in_courses_student.html', title='ДОМАШКА', lessons=lessons, lessons_id=lessons_id,
+                           base_url=config.BASE_URL)
 
 
 @application.route('/missions_in/<lesson_id>/view')
